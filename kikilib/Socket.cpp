@@ -139,8 +139,12 @@ void Socket::SetTcpNoDelay(bool on)
 void Socket::SetReuseAddr(bool on)
 {
 	int optval = on ? 1 : 0;
-	::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR,
+	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR,
 		&optval, static_cast<socklen_t>(sizeof optval));
+	if (ret < 0 && on)
+	{
+		RecordLog(ERROR_DATA_INFORMATION, "SO_REUSEPORT failed.");
+	}
 	// FIXME CHECK
 }
 
@@ -171,7 +175,7 @@ void Socket::SetKeepAlive(bool on)
 }
 
 //设置socket为非阻塞的
-void Socket::SetNonblckSocket()
+void Socket::SetNonBolckSocket()
 {
 	auto flags = fcntl(_sockfd, F_GETFL, 0);
 	fcntl(_sockfd, F_SETFL, flags | O_NONBLOCK);   //设置成非阻塞模式
