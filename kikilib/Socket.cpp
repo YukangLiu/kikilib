@@ -83,6 +83,7 @@ void Socket::Bind(std::string& ip, int port)
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind errno : ") + std::to_string(errno));
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind ip : ") + ip);
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind port : ") + std::to_string(port));
+		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind fd : ") + std::to_string(_sockfd));
 	}
 }
 
@@ -165,6 +166,10 @@ void Socket::SetReuseAddr(bool on)
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr port : ") + std::to_string(_port));
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr fd : ") + std::to_string(_sockfd));
 	}
+	else if (ret >= 0 && on)
+	{
+		RecordLog(DEBUG_DATA_INFORMATION, std::string("SetReuseAddr ok. fd : ") + std::to_string(_sockfd));
+	}
 }
 
 void Socket::SetReusePort(bool on)
@@ -179,6 +184,10 @@ void Socket::SetReusePort(bool on)
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort ip : ") + _ip);
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort port : ") + std::to_string(_port));
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort fd : ") + std::to_string(_sockfd));
+	}
+	else if (ret >= 0 && on)
+	{
+		RecordLog(DEBUG_DATA_INFORMATION, std::string("SetReusePort ok. fd : ") + std::to_string(_sockfd));
 	}
 #else
 	if (on)
