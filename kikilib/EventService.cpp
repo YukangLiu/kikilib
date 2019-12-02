@@ -45,20 +45,19 @@ void EventService::HandleEvent()
 	}
 	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
 	{
-		ssize_t n = _bufReader.ReadFillBuf();
-		if (n > 0)
+		if (_bufReader.IsEmpty())
 		{
 			HandleReadEvent();
 		}
-		else if (n == 0)
+		else
 		{
 			Close();
 		}
-		else
+		/*else
 		{
 			RecordLog(ERROR_DATA_INFORMATION, "read fd error!");
 			HandleErrEvent();
-		}
+		}*/
 	}
 	if (_eventState & EPOLLOUT)
 	{

@@ -32,6 +32,6 @@ void Timer::RunAt(Time time, std::function<void()> cb)
 	int ret = ::timerfd_settime(_timeSock.fd(), 0, &newValue, &oldValue);
 	if (ret)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "timerfd_settime");
+		RecordLog(ERROR_DATA_INFORMATION, std::string("timerfd_settime failed. errno : ") + std::to_string(errno));
 	}
 }

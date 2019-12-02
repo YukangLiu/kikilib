@@ -11,6 +11,12 @@ namespace kikilib
 		//日志名字
 		const static std::string logName("Log.txt");
 
+		//日志在占内存的最大大小（Byte），大于该数会舍弃掉一部分日志内容，防止内存爆满
+		const int64_t maxLogQueueByte = 1073741824; //1024 * 1024 * 1024 * 1, 1GB
+
+		//日志在占磁盘的最大大小（Byte），大于该数会舍弃掉一个日志文件，重新开始写，防止磁盘爆满
+		const int64_t maxLogDiskByte = 21474836480; //20 * 1024 * 1024 * 1024, 20GB
+
 		//线程池中线程的数量
 		constexpr static unsigned threadPoolCnt = 4;
 

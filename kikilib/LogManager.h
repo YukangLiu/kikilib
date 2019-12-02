@@ -52,6 +52,8 @@ namespace kikilib
 			_isInit = false;
 			_recordableQue.store(0);
 			_isWritable.store(false);
+			_logFileIdx = 0;
+			_curLogFileByte = 0;
 		};
 
 		~LogManager() {};
@@ -64,7 +66,6 @@ namespace kikilib
 		//初始化LogManager，调用方法为kikilib::LogManager::GetLogMgr()->InitLogManager(path)
 		//在程序启动时必须先调用该函数，否则该类的使用是异常的
 		bool StartLogManager(std::string logPath);
-		bool StartLogManager(const char* logPath);
 
 		//结束日志管理器，关闭进程前必须执行
 		void EndLogManager();
@@ -94,6 +95,15 @@ namespace kikilib
 
 		//是否已经初始化
 		static bool _isInit;
+
+		//当前正在写的日志文件编号，一共有两个文件，当磁盘满了舍弃旧的一个重新写
+		unsigned _logFileIdx;
+
+		//当前正在写的日志文件的字节大小
+		int64_t _curLogFileByte;
+
+		//日志文件路径
+		std::string _logPath;
 
 		//日志文件,测试证明比ofstream更快，故使用fwrite
 		FILE* _logFile;

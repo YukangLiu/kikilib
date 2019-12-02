@@ -64,10 +64,10 @@ namespace kikilib {
 		bool IsUseful() { return _sockfd >= 0; }
 
 		//绑定ip和port到当前Socket
-		void Bind(std::string& ip, int port);
+		int Bind(int port);
 
 		//开始监听当前Socket
-		void Listen();
+		int Listen();
 
 		//阻塞接收一个连接，返回一个新连接的Socket
 		Socket Accept();
@@ -94,25 +94,25 @@ namespace kikilib {
 		std::string GetSocketOptString() const;
 
 		//关闭套接字的写操作
-		void ShutdownWrite();
+		int ShutdownWrite();
 
 		//设置是否开启Nagle算法减少需要传输的数据包，若开启延时可能会增加
-		void SetTcpNoDelay(bool on);
+		int SetTcpNoDelay(bool on);
 
 		//设置是否地址重用
-		void SetReuseAddr(bool on);
+		int SetReuseAddr(bool on);
 
 		//设置是否端口重用
-		void SetReusePort(bool on);
+		int SetReusePort(bool on);
 
 		//设置是否使用心跳检测
-		void SetKeepAlive(bool on);
+		int SetKeepAlive(bool on);
 
 		//设置socket为非阻塞的
-		void SetNonBolckSocket();
+		int SetNonBolckSocket();
 
 		//设置socket为阻塞的
-		void SetBlockSocket();
+		int SetBlockSocket();
 
 		//void SetNoSigPipe();
 

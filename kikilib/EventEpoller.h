@@ -13,6 +13,10 @@ namespace kikilib
 	//职责：
 	//1、监视发现当前被触发的事件
 	//2、修改被监视的事件
+	//注：这里的epoll用的LT模式，原因如下：
+	//	  read事件到来时，若server的业务并不会每次readall并进行及时处理，那么，如果遭遇client
+	//疯狂发送巨大包体，ET模式必须每次将内容读进内存，而server不及时处理就会导致内容堆积，内存
+	//爆满，使用LT不会出现这个问题，socket接收缓冲区是满的对方会发送失败。
 	class EventEpoller
 	{
 	public:

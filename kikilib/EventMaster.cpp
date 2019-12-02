@@ -10,18 +10,16 @@
 
 using namespace kikilib;
 
-EventMaster::EventMaster(EventServiceFactory* pEvServeFac, std::string localIp, int listenPort)
+EventMaster::EventMaster(EventServiceFactory* pEvServeFac)
 	: _pEvServeFac(pEvServeFac), _stop(false)
 {
 	StartLogMgr(Parameter::logName);
-	_pListener = new Socket();
-	if (_pListener->IsUseful())
+	if (_listener.IsUseful())
 	{
-		_pListener->SetTcpNoDelay(Parameter::isNoDelay);
-		_pListener->SetReuseAddr(true);
-		_pListener->SetReusePort(true);
-		_pListener->SetBlockSocket();
-		_pListener->Bind(localIp, listenPort);
+		_listener.SetTcpNoDelay(Parameter::isNoDelay);
+		_listener.SetReuseAddr(true);
+		_listener.SetReusePort(true);
+		_listener.SetBlockSocket();
 	}
 	_pThreadPool = new ThreadPool();
 }
@@ -29,21 +27,24 @@ EventMaster::EventMaster(EventServiceFactory* pEvServeFac, std::string localIp, 
 EventMaster::~EventMaster()
 {
 	Stop();
-	delete _pListener;
 	delete _pEvServeFac;
 	delete _pThreadPool;
 	EndLogMgr();
 }
 
 
-void EventMaster::Loop(int mgrCnt)
+void EventMaster::Loop(int mgrCnt, int listenPort)
 {
-	if (!_pListener->IsUseful())
+	if (!_listener.IsUseful())
 	{
 		RecordLog("listener unuseful!");
 		return;
 	}
-	_pListener->Listen();
+	if (_listener.Bind(listenPort) < 0)
+	{
+		return;
+	}
+	_listener.Listen();
 
 	_mgrSelector.SetManagerCnt(mgrCnt);
 
@@ -56,12 +57,12 @@ void EventMaster::Loop(int mgrCnt)
 	//一直accept，因为只有一个线程在accept，所以没有惊群问题
 	while (!_stop)
 	{
-		Socket conn(_pListener->Accept());
+		Socket conn(_listener.Accept());
 		if (!conn.IsUseful())
 		{
 			continue;
 		}
-		RecordLog("accept a new usr!");
+		//RecordLog("accept a new usr!");
 		int nextMgrIdx = _mgrSelector.Next();
 		EventService* ev = _pEvServeFac->CreateEventService(conn, _evMgrs[nextMgrIdx]);
 		if (ev)

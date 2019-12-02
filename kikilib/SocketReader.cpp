@@ -6,6 +6,19 @@
 
 using namespace kikilib;
 
+bool SocketReader::IsEmpty()
+{
+	if (_rightBorder == _leftBorder)
+	{
+		auto ret = ReadFillBuf();
+		if (ret <= 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 //读取一个int，若缓存中没有，则返回false
 bool SocketReader::ReadInt32(int& res)
 {

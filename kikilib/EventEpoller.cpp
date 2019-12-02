@@ -7,6 +7,7 @@
 #include <poll.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace kikilib;
 
@@ -15,7 +16,7 @@ EventEpoller::EventEpoller()
 {
 	if (_epollFd < 0)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "epoll fd create failed!");
+		RecordLog(ERROR_DATA_INFORMATION, std::string("epoll fd create failed. errno : ") + std::to_string(errno));
 	}
 }
 
@@ -30,6 +31,7 @@ void EventEpoller::MotifyEv(EventService* evServ)
 {
 	if (!evServ)
 	{
+		RecordLog(WARNING_DATA_INFORMATION, "tring to motify a nullptr event!");
 		return;
 	}
 	struct epoll_event event;
@@ -39,7 +41,7 @@ void EventEpoller::MotifyEv(EventService* evServ)
 	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &event) < 0)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "event motify err!");
+		RecordLog(ERROR_DATA_INFORMATION, std::string("event motify. errno : ") + std::to_string(errno));
 	}
 }
 
@@ -48,6 +50,7 @@ void EventEpoller::AddEv(EventService* evServ)
 {
 	if (!evServ)
 	{
+		RecordLog(WARNING_DATA_INFORMATION, "tring to all a nullptr event!");
 		return;
 	}
 	struct epoll_event event;
@@ -57,7 +60,7 @@ void EventEpoller::AddEv(EventService* evServ)
 	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &event) < 0)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "event add err!");
+		RecordLog(ERROR_DATA_INFORMATION, std::string("event add. errno : ") + std::to_string(errno));
 	}
 }
 
@@ -75,7 +78,7 @@ void EventEpoller::RemoveEv(EventService* evServ)
 	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &event) < 0)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "event add err!");
+		RecordLog(ERROR_DATA_INFORMATION, std::string("event remove. errno : ") + std::to_string(errno));
 	}
 }
 
@@ -111,8 +114,7 @@ void EventEpoller::GetActEvServ(int timeOutMs, std::vector<EventService*>& activ
 	{
 		if (savedErrno != EINTR)
 		{
-			errno = savedErrno;
-			RecordLog(ERROR_DATA_INFORMATION, "err happened in GetActEvServ()");
+			RecordLog(ERROR_DATA_INFORMATION, std::string("epoll_wait. errno : ") + std::to_string(savedErrno));
 		}
 	}
 }

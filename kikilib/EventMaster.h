@@ -24,7 +24,7 @@ namespace kikilib
 	class EventMaster
 	{
 	public:
-		EventMaster(EventServiceFactory* pEvServeFac, std::string localIp, int listenPort);
+		EventMaster(EventServiceFactory* pEvServeFac);
 
 		~EventMaster();
 
@@ -32,7 +32,8 @@ namespace kikilib
 
 		//创建多个EventManager线程然后循环accept
 		//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
-		void Loop(int mgrCnt);
+		//listenPort : 要在哪个端口上listen
+		void Loop(int mgrCnt, int listenPort);
 
 		void Stop() { _stop = true; }
 
@@ -40,7 +41,7 @@ namespace kikilib
 
 		bool _stop;
 
-		Socket* _pListener;
+		Socket _listener;
 
 		//std::thread* _acceptor;
 

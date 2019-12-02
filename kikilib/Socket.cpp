@@ -68,31 +68,30 @@ std::string Socket::GetSocketOptString() const
 }
 
 
-void Socket::Bind(std::string& ip, int port)
+int Socket::Bind(int port)
 {
-	_ip = ip;
 	_port = port;
 	struct sockaddr_in serv;
 	memset(&serv, 0, sizeof(struct sockaddr_in));
 	serv.sin_family = AF_INET;
 	serv.sin_port = htons(port);
-	serv.sin_addr.s_addr = inet_addr(ip.c_str());
-
-	if (::bind(_sockfd, (struct sockaddr*) & serv, sizeof(serv)) < 0)
+	serv.sin_addr.s_addr = htonl(INADDR_ANY);
+	int ret = ::bind(_sockfd, (struct sockaddr*) & serv, sizeof(serv));
+	if (ret < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind errno : ") + std::to_string(errno));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind ip : ") + ip);
-		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind port : ") + std::to_string(port));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Bind fd : ") + std::to_string(_sockfd));
 	}
+	return ret;
 }
 
-void Socket::Listen()
+int Socket::Listen()
 {
-	if (::listen(_sockfd, Parameter::backLog) < 0)
+	int ret = ::listen(_sockfd, Parameter::backLog);
+	if (ret < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::Listen failed. errno : ") + std::to_string(errno));
 	}
+	return ret;
 }
 
 Socket Socket::Accept()
@@ -132,15 +131,17 @@ ssize_t Socket::Send(const void* buf, size_t count)
 	return ::send(_sockfd, buf, count, MSG_NOSIGNAL);
 }
 
-void Socket::ShutdownWrite()
+int Socket::ShutdownWrite()
 {
-	if (::shutdown(_sockfd, SHUT_WR) < 0)
+	int ret = ::shutdown(_sockfd, SHUT_WR);
+	if (ret < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("ShutdownWrite failed. errno : ") + std::to_string(errno));
 	}
+	return ret;
 }
 
-void Socket::SetTcpNoDelay(bool on)
+int Socket::SetTcpNoDelay(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, IPPROTO_TCP, TCP_NODELAY,
@@ -148,13 +149,11 @@ void Socket::SetTcpNoDelay(bool on)
 	if (ret < 0 && on)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetTcpNoDelay failed. errno : ") + std::to_string(errno));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetTcpNoDelay ip : ") + _ip);
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetTcpNoDelay port : ") + std::to_string(_port));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetTcpNoDelay fd : ") + std::to_string(_sockfd));
 	}
+	return ret;
 }
 
-void Socket::SetReuseAddr(bool on)
+int Socket::SetReuseAddr(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR,
@@ -162,32 +161,20 @@ void Socket::SetReuseAddr(bool on)
 	if (ret < 0 && on)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr failed. errno : ") + std::to_string(errno));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr ip : ") + _ip);
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr port : ") + std::to_string(_port));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReuseAddr fd : ") + std::to_string(_sockfd));
 	}
-	else if (ret >= 0 && on)
-	{
-		RecordLog(DEBUG_DATA_INFORMATION, std::string("SetReuseAddr ok. fd : ") + std::to_string(_sockfd));
-	}
+	return ret;
 }
 
-void Socket::SetReusePort(bool on)
+int Socket::SetReusePort(bool on)
 {
+	int ret = -1;
 #ifdef SO_REUSEPORT
 	int optval = on ? 1 : 0;
-	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEPORT,
+	ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEPORT,
 		&optval, static_cast<socklen_t>(sizeof optval));
 	if (ret < 0 && on)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort failed. errno : ") + std::to_string(errno));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort ip : ") + _ip);
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort port : ") + std::to_string(_port));
-		RecordLog(ERROR_DATA_INFORMATION, std::string("SetReusePort fd : ") + std::to_string(_sockfd));
-	}
-	else if (ret >= 0 && on)
-	{
-		RecordLog(DEBUG_DATA_INFORMATION, std::string("SetReusePort ok. fd : ") + std::to_string(_sockfd));
 	}
 #else
 	if (on)
@@ -195,9 +182,10 @@ void Socket::SetReusePort(bool on)
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SO_REUSEPORT is not supported. errno : ") + std::to_string(errno));
 	}
 #endif
+	return ret;
 }
 
-void Socket::SetKeepAlive(bool on)
+int Socket::SetKeepAlive(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_KEEPALIVE,
@@ -206,10 +194,11 @@ void Socket::SetKeepAlive(bool on)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetKeepAlive failed. errno : ") + std::to_string(errno));
 	}
+	return ret;
 }
 
 //设置socket为非阻塞的
-void Socket::SetNonBolckSocket()
+int Socket::SetNonBolckSocket()
 {
 	auto flags = fcntl(_sockfd, F_GETFL, 0);
 	int ret = fcntl(_sockfd, F_SETFL, flags | O_NONBLOCK);   //设置成非阻塞模式
@@ -217,10 +206,11 @@ void Socket::SetNonBolckSocket()
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("SetNonBolckSocket failed. errno : ") + std::to_string(errno));
 	}
+	return ret;
 }
 
 //设置socket为阻塞的
-void Socket::SetBlockSocket()
+int Socket::SetBlockSocket()
 {
 	auto flags = fcntl(_sockfd, F_GETFL, 0);
 	int ret = fcntl(_sockfd, F_SETFL, flags & ~O_NONBLOCK);    //设置成阻塞模式；
@@ -228,6 +218,7 @@ void Socket::SetBlockSocket()
 	{
 		RecordLog(ERROR_DATA_INFORMATION,std::string("SetBlockSocket failed. errno : ") + std::to_string(errno));
 	}
+	return ret;
 }
 
 //void Socket::SetNoSigPipe()

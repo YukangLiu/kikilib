@@ -27,6 +27,9 @@ namespace kikilib
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SocketReader);
 
+		//缓冲区是否为空
+		bool IsEmpty();
+
 		//读取一个int，若缓存中没有，则返回false
 		bool ReadInt32(int& res);
 
@@ -47,11 +50,12 @@ namespace kikilib
 
 		//读取所有能读取的数据，没有则返回空串
 		std::string ReadAll();
+		
+
+	private:
 
 		//尝试读取能填满缓冲区的数据,若缓冲区已经满了，会先扩充1.5倍大小
 		ssize_t ReadFillBuf();
-
-	private:
 
 		Socket _sock;
 
