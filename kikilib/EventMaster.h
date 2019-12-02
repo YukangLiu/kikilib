@@ -40,7 +40,7 @@ namespace kikilib
 
 		bool _stop;
 
-		Socket _listener;
+		Socket* _pListener;
 
 		//std::thread* _acceptor;
 

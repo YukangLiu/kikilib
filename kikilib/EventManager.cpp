@@ -39,7 +39,8 @@ void EventManager::Loop()
 		TFD_NONBLOCK | TFD_CLOEXEC);
 	if (timeFd < 0)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, "timer init failed!");
+		RecordLog(ERROR_DATA_INFORMATION,std::to_string(_idx) + " eventManager timer init failed!");
+		return;
 	}
 	Socket timeSock(timeFd);
 	_pTimer = new Timer(timeSock);

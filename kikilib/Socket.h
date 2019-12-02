@@ -13,7 +13,7 @@ struct tcp_info;
 
 namespace kikilib {
 
-	//Socket类，创建的Socket对象默认都是非阻塞,端口复用的
+	//Socket类，创建的Socket对象默认都是非阻塞的
 	//职责：
 	//1、提供fd操作的相关API
 	//2、管理fd的生命周期
@@ -27,10 +27,7 @@ namespace kikilib {
 			_pRef = new int(1);
 			if (sockfd > 0)
 			{
-				SetTcpNoDelay(Parameter::isNoDelay);
 				SetNonBolckSocket();
-				SetReuseAddr(true);
-				SetReusePort(true);
 			}
 		}
 
@@ -38,12 +35,6 @@ namespace kikilib {
 			: _sockfd(::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP)), _ip(""), _port(-1)
 		{
 			_pRef = new int(1);
-			if (_sockfd > 0)
-			{
-				SetTcpNoDelay(Parameter::isNoDelay);
-				SetReuseAddr(true);
-				SetReusePort(true);
-			}
 		}
 
 		Socket(const Socket& otherSock) : _sockfd(otherSock._sockfd)
@@ -68,6 +59,9 @@ namespace kikilib {
 
 		//返回当前Socket的fd
 		int fd() const { return _sockfd; }
+
+		//返回当前Socket是否可用
+		bool IsUseful() { return _sockfd >= 0; }
 
 		//绑定ip和port到当前Socket
 		void Bind(std::string& ip, int port);

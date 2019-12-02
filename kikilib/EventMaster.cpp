@@ -14,16 +14,22 @@ EventMaster::EventMaster(EventServiceFactory* pEvServeFac, std::string localIp, 
 	: _pEvServeFac(pEvServeFac), _stop(false)
 {
 	StartLogMgr(Parameter::logName);
-    while(::signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-    {}
-	_listener.Bind(localIp, listenPort);
-	_listener.SetBlockSocket();
+	_pListener = new Socket();
+	if (_pListener->IsUseful())
+	{
+		_pListener->SetTcpNoDelay(Parameter::isNoDelay);
+		_pListener->SetReuseAddr(true);
+		_pListener->SetReusePort(true);
+		_pListener->SetBlockSocket();
+		_pListener->Bind(localIp, listenPort);
+	}
 	_pThreadPool = new ThreadPool();
 }
 
 EventMaster::~EventMaster()
 {
 	Stop();
+	delete _pListener;
 	delete _pEvServeFac;
 	delete _pThreadPool;
 	EndLogMgr();
@@ -32,9 +38,14 @@ EventMaster::~EventMaster()
 
 void EventMaster::Loop(int mgrCnt)
 {
-	_mgrSelector.SetManagerCnt(mgrCnt);
+	if (!_pListener->IsUseful())
+	{
+		RecordLog("listener unuseful!");
+		return;
+	}
+	_pListener->Listen();
 
-	_listener.Listen();
+	_mgrSelector.SetManagerCnt(mgrCnt);
 
 	for (int i = 0; i < mgrCnt; ++i)
 	{
@@ -42,13 +53,14 @@ void EventMaster::Loop(int mgrCnt)
 		_evMgrs.back()->Loop();
 	}
 
-	//_acceptor = new std::thread(
-	//	[this]
-	//	{
 	//一直accept，因为只有一个线程在accept，所以没有惊群问题
 	while (!_stop)
 	{
-		Socket conn(_listener.Accept());
+		Socket conn(_pListener->Accept());
+		if (!conn.IsUseful())
+		{
+			continue;
+		}
 		RecordLog("accept a new usr!");
 		int nextMgrIdx = _mgrSelector.Next();
 		EventService* ev = _pEvServeFac->CreateEventService(conn, _evMgrs[nextMgrIdx]);
@@ -71,6 +83,4 @@ void EventMaster::Loop(int mgrCnt)
 	{
 		delete evMgr;
 	}
-	//}
-	//);
 }
