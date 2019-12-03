@@ -27,7 +27,6 @@ EventMaster::EventMaster(EventServiceFactory* pEvServeFac)
 EventMaster::~EventMaster()
 {
 	Stop();
-	delete _pEvServeFac;
 	delete _pThreadPool;
 	EndLogMgr();
 }

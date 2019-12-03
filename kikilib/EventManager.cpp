@@ -147,14 +147,16 @@ void EventManager::Motify(EventService* ev)
 	{
 		return;
 	}
-	if (_eventSet.find(ev) == _eventSet.end())
+
 	{
-		Insert(ev);
+		std::lock_guard<std::mutex> lock(_eventSetMutex);
+		if (_eventSet.find(ev) == _eventSet.end())
+		{
+			Insert(ev);
+			return;
+		}
 	}
-	else
-	{
-		_epoller.MotifyEv(ev);
-	}
+	_epoller.MotifyEv(ev);
 }
 
 //time时间后执行timerCb函数

@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <map>
+#include <mutex>
 #include <functional>
 
 namespace kikilib
@@ -12,6 +13,7 @@ namespace kikilib
 	//职责：
 	//1、管理 某一时刻——该时刻需要执行的函数 的映射表
 	//2、提供定时事件的操作接口
+	//3、需要保证线程安全，因为主线程执行的HandleConnectionEvent函数和EventManager可能同时使用同一个定时器
 	class Timer
 	{
 	public:
@@ -28,6 +30,8 @@ namespace kikilib
 
 	private:
 		Socket _timeSock;
+
+		std::mutex _timerMutex;
 
 		//定时器回调函数集合
 		std::multimap<Time, std::function<void()>> _timerCbMap;
