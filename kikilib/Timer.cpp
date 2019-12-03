@@ -34,19 +34,28 @@ void Timer::RunExpired()
 
 void Timer::RunAt(Time time, std::function<void()> cb)
 {
+	bool needSetTime = false;
+
 	{
 		std::lock_guard<std::mutex> lock(_timerMutex);
 		_timerCbMap.insert(std::move(std::pair<Time, std::function<void()>>(time, cb)));
+		if (_timerCbMap.begin()->first == time)
+		{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
+			needSetTime = true;
+		}
 	}
 	
-	struct itimerspec newValue;
-	struct itimerspec oldValue;
-	memset(&newValue, 0, sizeof newValue);
-	memset(&oldValue, 0, sizeof oldValue);
-	newValue.it_value = time.TimeIntervalFromNow();
-	int ret = ::timerfd_settime(_timeSock.fd(), 0, &newValue, &oldValue);
-	if (ret)
+	if (needSetTime)
 	{
-		RecordLog(ERROR_DATA_INFORMATION, std::string("timerfd_settime failed. errno : ") + std::to_string(errno));
+		struct itimerspec newValue;
+		struct itimerspec oldValue;
+		memset(&newValue, 0, sizeof newValue);
+		memset(&oldValue, 0, sizeof oldValue);
+		newValue.it_value = time.TimeIntervalFromNow();
+		int ret = ::timerfd_settime(_timeSock.fd(), 0, &newValue, &oldValue);
+		if (ret)
+		{
+			RecordLog(ERROR_DATA_INFORMATION, std::string("timerfd_settime failed. errno : ") + std::to_string(errno));
+		}
 	}
 }
