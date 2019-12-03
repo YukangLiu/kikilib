@@ -1,8 +1,6 @@
 #include "LogManager.h"
 #include "Parameter.h"
 
-#define MIN_WRITABLE_LOGDATE_NUM 1 //当队列中数据小于这个数时，写日志的线程等待这么多WRITING_LOG_WAIT_TIME毫秒
-#define WRITING_LOG_WAIT_TIME 100 //当队列中数据小于MIN_WRITABLE_LOGDATE_NUM时，写日志的线程等待这么多ms
 #define BYTE_PER_LOGQUE_STRING 60 //日志队列每个string元素的字节大小估算值
 
 using namespace kikilib;
@@ -20,11 +18,15 @@ bool LogManager::StartLogManager(std::string logPath)
 		if (!_isInit)
 		{
 			_logPath = logPath;
-			_logFile = ::fopen((_logPath + std::to_string(_logFileIdx)).c_str(), "w");
+			_logFile = ::fopen((_logPath + std::to_string(_curLogFileIdx & 1)).c_str(), "w");
 			if (!_logFile)
 			{
+				printf("logfile open failed");
 				return false;
 			}
+			std::string fileMsg = "cur file idx : 0\n";
+			fwrite(fileMsg.c_str(), fileMsg.size(), 1, _logFile);
+			fflush(_logFile);
 			_isInit = true;
 			//创建一个线程持续写日志
 			_logLoop = new std::thread(&LogManager::WriteDownLog, this);
@@ -64,10 +66,7 @@ void LogManager::Record(std::string& logDate)
 	std::lock_guard<std::mutex> lock(_logMutex);//线程安全
 	int curQue = _recordableQue.load();
 	_logQue[curQue].emplace(logDate);
-	if (_logQue[curQue].size() == MIN_WRITABLE_LOGDATE_NUM)
-	{
-		_isWritable.store(true);
-	}
+	_condition.notify_one();
 }
 
 void LogManager::Record(std::string&& logDate)
@@ -75,10 +74,7 @@ void LogManager::Record(std::string&& logDate)
 	std::lock_guard<std::mutex> lock(_logMutex);//线程安全
 	int curQue = _recordableQue.load();
 	_logQue[curQue].emplace(std::move(logDate));
-	if (_logQue[curQue].size() == MIN_WRITABLE_LOGDATE_NUM)
-	{
-		_isWritable.store(true);
-	}
+	_condition.notify_one();
 }
 
 void LogManager::Record(const char* logData)
@@ -106,10 +102,13 @@ void LogManager::WriteDownLog()
 	const int64_t kMaxPerLogFileByte = Parameter::maxLogDiskByte / 2;
 	while (true)
 	{
-		if (_isWritable.load())
+		if (_stop)
+		{
+			return;
+		}
+		else
 		{//只要可写，就必须要写完
 			//日志内容先记录到另一队列中
-			_isWritable.store(false);
 			int curWritingQue = _recordableQue.load();
 			_recordableQue.store(!curWritingQue);
 
@@ -131,10 +130,14 @@ void LogManager::WriteDownLog()
 				{
 					if (_curLogFileByte > kMaxPerLogFileByte)
 					{//磁盘要爆满了，舍弃旧的日志
+						fflush(_logFile);
 						::fclose(_logFile);
-						_logFileIdx = !_logFileIdx;
-						_logFile = ::fopen((_logPath + std::to_string(_logFileIdx)).c_str(), "w");
+						++_curLogFileIdx;
+						_logFile = ::fopen((_logPath + std::to_string(_curLogFileIdx & 1)).c_str(), "w");
 						_curLogFileByte = 0;
+						//首先记录当前日志为第几个日志了
+						std::string fileMsg = "cur file idx : " + std::to_string(_curLogFileIdx) + '\n';
+						fwrite(fileMsg.c_str(), fileMsg.size(), 1, _logFile);
 					}
 					std::string& buf = _logQue[curWritingQue].front();
 					buf.append("\n");
@@ -144,14 +147,15 @@ void LogManager::WriteDownLog()
 				}
 				fflush(_logFile);
 			}
-		}
-		else if (_stop)
-		{
-			return;
-		}
-		else
-		{//数据不够写，先等一段时间
-			std::this_thread::sleep_for(std::chrono::milliseconds(WRITING_LOG_WAIT_TIME));
+
+			{//如果另一条队列没数据了，则阻塞
+				std::unique_lock<std::mutex> lock(_logMutex);
+				if (_logQue[!curWritingQue].empty())
+				{
+					_condition.wait(lock);
+				}
+			}
+
 		}
 	}
 }

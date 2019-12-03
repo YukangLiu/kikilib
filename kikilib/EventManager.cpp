@@ -11,7 +11,7 @@
 
 using namespace kikilib;
 
-EventManager::EventManager(int idx) : _idx(idx), _quit(false), _pLooper(nullptr), _pTimer(nullptr)
+EventManager::EventManager(int idx, ThreadPool* threadPool) : _idx(idx), _pThreadPool(threadPool), _quit(false), _pLooper(nullptr), _pTimer(nullptr)
 { }
 
 EventManager::~EventManager()
@@ -34,6 +34,11 @@ EventManager::~EventManager()
 
 void EventManager::Loop()
 {
+	if (_pThreadPool == nullptr)
+	{//判断线程池工具是否有效
+		RecordLog(ERROR_DATA_INFORMATION, std::to_string(_idx) + " get a null threadpool!");
+		return;
+	}
 	//初始化定时器服务
 	int timeFd = ::timerfd_create(CLOCK_MONOTONIC,
 		TFD_NONBLOCK | TFD_CLOEXEC);
@@ -170,6 +175,7 @@ void EventManager::RunAfter(Time time, std::function<void()> timerCb)
 //time时间后执行timerCb函数
 void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 {
+	//这里lamda表达式不加括号会立刻执行，待测试
 	std::function<void()> realTimerCb(
 		[this, time, timerCb]
 		{
@@ -183,9 +189,7 @@ void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 }
 
 //将任务放在线程池中以达到异步执行的效果
-template<class F, class... Args>
-auto EventManager::RunInThreadPool(F&& f, Args&&... args)
-->std::future<typename std::result_of<F(Args...)>::type>
+void EventManager::RunInThreadPool(std::function<void()>&& func)
 {
-    return _pThreadPool->enqueue(f,args...);
+    return _pThreadPool->enqueue(std::move(func));
 }

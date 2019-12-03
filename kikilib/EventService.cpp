@@ -45,7 +45,7 @@ void EventService::HandleEvent()
 	}
 	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
 	{
-		if (_bufReader.IsEmpty())
+		if (!_bufReader.IsEmpty())
 		{
 			HandleReadEvent();
 		}
@@ -133,9 +133,7 @@ void EventService::RunEvery(Time time, std::function<void()> timerCb)
 }
 
 //将任务放在线程池中以达到异步执行的效果
-template<class F, class... Args>
-auto EventService::RunInThreadPool(F&& f, Args&&... args)
-->std::future<typename std::result_of<F(Args...)>::type>
+void EventService::RunInThreadPool(std::function<void()>&& func)
 {
-    return _pMyEvMgr->RunInThreadPool(f,args...);
+    return _pMyEvMgr->RunInThreadPool(std::move(func));
 }

@@ -9,14 +9,26 @@ using namespace kikilib;
 void Timer::RunExpired()
 {
 	Time nowTime = Time::now();
-
-	{
-		std::lock_guard<std::mutex> lock(_timerMutex);
-		for (auto it = _timerCbMap.begin(); it != _timerCbMap.end() && it->first < nowTime; it = _timerCbMap.begin())
+	bool isDo = true;
+	std::map<Time, std::function<void()>>::iterator it, end;
+	while(isDo)
+	{//搞得这么复杂，是因为it->second这个函数是有可能操作定时器的，这个时候只有这样才不会死锁
+		{
+			std::lock_guard<std::mutex> lock(_timerMutex);
+			it = _timerCbMap.begin();
+			end = _timerCbMap.end();
+			if (it != end && it->first < nowTime)
+			{
+				isDo = true;
+			}
+		}
+		
+		if (isDo)
 		{
 			(it->second)();
-			_timerCbMap.erase(it);
 		}
+		std::lock_guard<std::mutex> lock(_timerMutex);
+		_timerCbMap.erase(it);
 	}
 	
 	if (!_timerCbMap.empty())

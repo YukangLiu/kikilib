@@ -81,9 +81,7 @@ namespace kikilib
 		//1、向数据库写数据，直接将写数据库的函数放入其中
 		//2、从数据库读数据，将读取数据库的函数放入其中，
 		//   然后设置定时器事件，过time时间后检查是否读完
-        template<class F, class... Args>
-        auto RunInThreadPool(F&& f, Args&&... args)
-        ->std::future<typename std::result_of<F(Args...)>::type>;
+        void RunInThreadPool(std::function<void()>&& func);
 
 		////////////////////////////socket缓冲区相关的操作API/////////////////////////////////
 

@@ -7,6 +7,7 @@
 #include <string>
 #include <stdio.h>
 #include <thread>
+#include <condition_variable>
 
 #include "utils.h"
 //#include <stdarg.h>
@@ -51,9 +52,8 @@ namespace kikilib
 			_stop = false;
 			_isInit = false;
 			_recordableQue.store(0);
-			_isWritable.store(false);
-			_logFileIdx = 0;
 			_curLogFileByte = 0;
+			_curLogFileIdx = 0;
 		};
 
 		~LogManager() {};
@@ -93,14 +93,20 @@ namespace kikilib
 		//用于保护的锁，为了服务器执行效率，原则上不允许长久占有此锁
 		static std::mutex _logMutex;
 
+		//和条件变量配合使用的锁
+		std::mutex _conditionMutex;
+
+		//用于唤醒写日志线程
+		std::condition_variable _condition;
+
 		//是否已经初始化
 		static bool _isInit;
 
-		//当前正在写的日志文件编号，一共有两个文件，当磁盘满了舍弃旧的一个重新写
-		unsigned _logFileIdx;
-
 		//当前正在写的日志文件的字节大小
 		int64_t _curLogFileByte;
+
+		//当前正在写的日志文件是已写的第几个日志文件，实际永远只会有两个文件，当磁盘满了舍弃旧的一个重新写
+		int64_t _curLogFileIdx;
 
 		//日志文件路径
 		std::string _logPath;
@@ -117,9 +123,6 @@ namespace kikilib
 
 		//当前可用于存入需写数据的队列
 		std::atomic_int _recordableQue;
-
-		//当前记录线程是否可向日志文件中写入日志，当队列数大于10时，将该对象设为true
-		std::atomic_bool _isWritable;
 
 		bool _stop;
 	};

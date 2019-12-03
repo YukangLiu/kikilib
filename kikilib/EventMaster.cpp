@@ -6,8 +6,6 @@
 #include "EventServiceFactory.h"
 #include "ThreadPool.h"
 
-#include <signal.h>
-
 using namespace kikilib;
 
 EventMaster::EventMaster(EventServiceFactory* pEvServeFac)
@@ -49,7 +47,7 @@ void EventMaster::Loop(int mgrCnt, int listenPort)
 
 	for (int i = 0; i < mgrCnt; ++i)
 	{
-		_evMgrs.emplace_back(std::move(new EventManager(i)));
+		_evMgrs.emplace_back(std::move(new EventManager(i, _pThreadPool)));
 		_evMgrs.back()->Loop();
 	}
 

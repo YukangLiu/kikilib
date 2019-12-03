@@ -38,7 +38,7 @@ namespace kikilib
 	class EventManager
 	{
 	public:
-		EventManager(int idx);
+		EventManager(int idx, ThreadPool* threadPool);
 		~EventManager();
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventManager);
@@ -62,9 +62,7 @@ namespace kikilib
 		void RunEvery(Time time, std::function<void()> timerCb);
 
 		//将任务放在线程池中以达到异步执行的效果
-        template<class F, class... Args>
-        auto RunInThreadPool(F&& f, Args&&... args)
-        ->std::future<typename std::result_of<F(Args...)>::type>;
+        void RunInThreadPool(std::function<void()>&& func);
 
 	private:
 		//当前manager的索引号，有些场景需要某个manager专门处理某种事件

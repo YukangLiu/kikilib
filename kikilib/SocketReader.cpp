@@ -13,10 +13,10 @@ bool SocketReader::IsEmpty()
 		auto ret = ReadFillBuf();
 		if (ret <= 0)
 		{
-			return false;
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 //读取一个int，若缓存中没有，则返回false
@@ -43,6 +43,10 @@ bool SocketReader::ReadInt32(int& res)
 	}
 	_leftBorder = newLeft;
 	res = atoi(tmpStr.c_str());
+	if (!isPositive)
+	{
+		res = -res;
+	}
 	return true;
 }
 

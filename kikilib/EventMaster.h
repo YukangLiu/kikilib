@@ -32,7 +32,7 @@ namespace kikilib
 
 		//创建多个EventManager线程然后循环accept
 		//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
-		//listenPort : 要在哪个端口上listen
+		//listenPort : 要在哪个端口上循环listen
 		void Loop(int mgrCnt, int listenPort);
 
 		void Stop() { _stop = true; }
