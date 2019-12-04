@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "Socket.h"
 #include "LogManager.h"
 
@@ -13,7 +14,7 @@ using namespace kikilib;
 Socket::~Socket()
 {
 	--(*_pRef);
-	if (!(*_pRef))
+	if (!(*_pRef) && IsUseful())
 	{
 		if (::close(_sockfd) < 0)
 		{
@@ -21,8 +22,9 @@ Socket::~Socket()
 		}
 		else
 		{
-			RecordLog(std::string(std::to_string(_sockfd) + " close"));
+			//RecordLog(std::string(std::to_string(_sockfd) + " close"));
 		}
+		delete _pRef;
 	}
 }
 
@@ -103,6 +105,7 @@ Socket Socket::Accept()
 	if (connfd < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("Socket::accept failed. errno : ") + std::to_string(errno));
+		return Socket(connfd);
 	}
 
 	SetTcpNoDelay(Parameter::isNoDelay);

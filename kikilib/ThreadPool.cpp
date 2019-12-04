@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "ThreadPool.h"
 #include "LogManager.h"
 #include "Parameter.h"
@@ -6,9 +7,8 @@ using namespace kikilib;
 
 // the constructor just launches some amount of workers
 ThreadPool::ThreadPool()
-	: _stop(false)
+	: _usableQue(0), _stop(false)
 {
-	_usableQue = 0;
 	for (size_t i = 0; i < Parameter::threadPoolCnt; ++i)
 	{
 		_workers.emplace_back(

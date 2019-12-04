@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "SocketWritter.h"
 #include "EventService.h"
 #include "LogManager.h"
@@ -8,7 +9,7 @@
 using namespace kikilib;
 
 SocketWtitter::SocketWtitter(Socket sock, EventService* pEvServe)
-	: _sock(sock), _pEvServe(pEvServe), _leftBorder(0), _rightBorder(0)
+	: _sock(sock), _leftBorder(0), _rightBorder(0), _pEvServe(pEvServe)
 {
 	_buffer.resize(Parameter::bufferInitLen);
 }
@@ -33,16 +34,16 @@ void SocketWtitter::Send(std::string& str)
 	}
 	else
 	{
-		auto ret = _sock.Send(&(*str.begin()), str.size());
+		int ret = static_cast<int>(_sock.Send(&(*str.begin()), str.size()));
 		if (ret < 0)
 		{//error
 			RecordLog(ERROR_DATA_INFORMATION, "write socket error!");
 			return;
 		}
-		else if (ret < str.size())
+		else if (ret < static_cast<int>(str.size()))
 		{//内容没发完
 			_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() | EPOLLOUT);
-			auto leftLen = str.size() - ret;
+			size_t leftLen = str.size() - static_cast<size_t>(ret);
 			if (_buffer.size() - _rightBorder < leftLen)
 			{
 				_buffer.resize(_rightBorder + leftLen);
@@ -70,16 +71,16 @@ void SocketWtitter::Send(std::string&& str)
 	}
 	else
 	{
-		auto ret = _sock.Send(&(*str.begin()), str.size());
+		int ret = static_cast<int>(_sock.Send(&(*str.begin()), str.size()));
 		if (ret < 0)
 		{//error
 			RecordLog(ERROR_DATA_INFORMATION, "write socket error!");
 			return;
 		}
-		else if (ret < str.size())
+		else if (ret < static_cast<int>(str.size()))
 		{//内容没发完
 			_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() | EPOLLOUT);
-			auto leftLen = str.size() - ret;
+			auto leftLen = str.size() - static_cast<size_t>(ret);
 			if (_buffer.size() - _rightBorder < leftLen)
 			{
 				_buffer.resize(_rightBorder + leftLen);
@@ -101,7 +102,7 @@ void SocketWtitter::WriteBufToSock()
 	{//没有东西写
 		return;
 	}
-	auto ret = _sock.Send(&(_buffer[_leftBorder]), curLen);
+	int ret = static_cast<int>(_sock.Send(&(_buffer[_leftBorder]), curLen));
 	if (ret < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, "write socket error!");

@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "StaticHttpService.h"
 
 #include <stdio.h>
@@ -15,7 +16,6 @@ static std::string rootPath(".");
 
 void StaticHttpService::HandleReadEvent()
 {
-	char buf[1024];
 	struct stat st;
 
 	//读http 请求的第一行数据（request line），把请求方法存进 method 中
@@ -130,9 +130,10 @@ void StaticHttpService::SendFile(std::string& path)
 		SendHeader(path);
 		//接着把这个文件的内容读出来作为 response 的 body 发送到客户端
 		SendBody(fp);
-	}
 
-	fclose(fp);
+		fclose(fp);
+	}
+	
 }
 
 void StaticHttpService::SendNotFount()
@@ -160,13 +161,13 @@ void StaticHttpService::SendHeader(std::string& path)
 void StaticHttpService::SendBody(FILE* fp)
 {
 	char buf[1024];
-
+	char* ret;
 	//从文件文件描述符中读取指定内容
-	fgets(buf, sizeof(buf), fp);
+	ret = fgets(buf, sizeof(buf), fp);
 	while (!feof(fp))
 	{
 		WriteBuf(std::string(buf));
-		fgets(buf, sizeof(buf), fp);
+		ret = fgets(buf, sizeof(buf), fp);
 	}
 }
 

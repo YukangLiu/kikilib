@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 
 #include "EventEpoller.h"
@@ -44,7 +45,7 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventManager);
 
 		//创建一个线程，然后线程中循环扫描事件
-		void Loop();
+		bool Loop();
 
 		//向事件管理器中插入一个事件,这是线程安全的
 		void Insert(EventService* ev);
@@ -71,21 +72,6 @@ namespace kikilib
 		//退出循环的标志
 		bool _quit;
 
-		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正放入其中
-		std::vector<EventService*> _removedEv;
-
-		//EventEpoller发现的活跃事件所放的列表
-		std::vector<EventService*> _actEvServs;
-
-		//活跃事件按照优先级所放的列表
-		std::vector<EventService*> _priorityEvQue[EVENT_PRIORITY_TYPE_COUNT];
-
-		//保证eventSet的线程安全
-		std::mutex _eventSetMutex;
-
-		//保证移除事件时的线程安全
-		std::mutex _removedEvMutex;
-
 		//线程池，可将函数放入其中异步执行
 		ThreadPool* _pThreadPool;
 
@@ -94,6 +80,21 @@ namespace kikilib
 
 		//定时器，进行定时事件处理
 		Timer* _pTimer;
+
+		//保证eventSet的线程安全
+		std::mutex _eventSetMutex;
+
+		//保证移除事件时的线程安全
+		std::mutex _removedEvMutex;
+
+		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正放入其中
+		std::vector<EventService*> _removedEv;
+
+		//EventEpoller发现的活跃事件所放的列表
+		std::vector<EventService*> _actEvServs;
+
+		//活跃事件按照优先级所放的列表
+		std::vector<EventService*> _priorityEvQue[EVENT_PRIORITY_TYPE_COUNT];
 
 		//事件监视器
 		EventEpoller _epoller;

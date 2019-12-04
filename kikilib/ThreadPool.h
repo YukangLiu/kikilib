@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 #include <vector>
 #include <queue>
@@ -27,6 +28,10 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(ThreadPool);
 
 	private:
+		//当前可以向其中加入任务的队列下标
+		int _usableQue;
+		bool _stop;
+
 		// need to keep track of threads so we can join them
 		std::vector< std::thread > _workers;
 		// 双任务队列，一条一直在被外界放任务，一条一直在被线程消费执行任务
@@ -36,9 +41,5 @@ namespace kikilib
 		std::mutex _threadsMutex;//执行任务的线程之间的锁
 		std::mutex _changeQueMutex;//若需要切换任务队列，使用此锁
 		std::condition_variable _condition;
-
-		//当前可以向其中加入任务的队列下标
-		int _usableQue;
-		bool _stop;
 	};
 }

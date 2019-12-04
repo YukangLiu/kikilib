@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 
 #include "Socket.h"
@@ -41,8 +42,6 @@ namespace kikilib
 
 		bool _stop;
 
-		Socket _listener;
-
 		//std::thread* _acceptor;
 
 		//创建事件服务的工厂
@@ -51,11 +50,16 @@ namespace kikilib
 		//线程池
 		ThreadPool* _pThreadPool;
 
+		//用于监听的socket
+		Socket _listener;
+
 		//事件管理器的选择器，用于选择下一个事件由哪个事件管理器管理
 		ManagerSelector _mgrSelector;
 
 		//事件管理器列表
 		std::vector<EventManager*> _evMgrs;
+
+		int _storedFd;
 	};
 
 }

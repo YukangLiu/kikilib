@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "SocketReader.h"
 #include "Parameter.h"
 
@@ -24,7 +25,7 @@ bool SocketReader::ReadInt32(int& res)
 {
 	ReadFillBuf();
 	std::string tmpStr;
-	int newLeft = _leftBorder;
+	size_t newLeft = _leftBorder;
 	bool isPositive = true;
 	if (newLeft < _rightBorder && (_buffer[newLeft] == '+' || _buffer[newLeft] == '-'))
 	{//¼ì²â·ûºÅ£¬ÓÐ·ûºÅÒªÌøÒ»²½
@@ -112,7 +113,7 @@ std::string SocketReader::ReadAll()
 	while (ReadFillBuf() > 0)
 	{
 	}
-	int tmpLeft = _leftBorder, tmpRight = _rightBorder;
+	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder;
 	_rightBorder = 0;
 	_leftBorder = 0;
 	return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + tmpRight);
@@ -122,7 +123,7 @@ std::string SocketReader::ReadAll()
 std::string SocketReader::ReadLineEndOfRN()
 {
 	ReadFillBuf();
-	int tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
+	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{
 		if (_buffer[endPos] == '\r' && endPos + 1 < tmpRight && _buffer[endPos + 1] == '\n')
@@ -148,7 +149,7 @@ std::string SocketReader::ReadLineEndOfRN()
 std::string SocketReader::ReadLineEndOfR()
 {
 	ReadFillBuf();
-	int tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
+	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{
 		if (_buffer[endPos] == '\r')
@@ -174,7 +175,7 @@ std::string SocketReader::ReadLineEndOfR()
 std::string SocketReader::ReadLineEndOfN()
 {
 	ReadFillBuf();
-	int tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
+	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{
 		if (_buffer[endPos] == '\n')

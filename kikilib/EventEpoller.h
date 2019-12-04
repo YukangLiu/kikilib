@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 #include "utils.h"
 
@@ -25,6 +26,9 @@ namespace kikilib
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventEpoller);
 
+		//要使用EventEpoller必须调用该函数初始化，失败则返回false
+		bool Init();
+
 		//修改EventEpoller中的事件
 		void MotifyEv(EventService* evServ);
 
@@ -38,6 +42,8 @@ namespace kikilib
 		void GetActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs);
 
 	private:
+
+		bool IsEpollFdUsefulAndMark();
 
 		int _epollFd;
 		std::vector<struct epoll_event> _activeEpollEvents;

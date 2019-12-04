@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "LogManager.h"
 #include "Parameter.h"
 
@@ -9,6 +10,18 @@ using namespace kikilib;
 LogManager* LogManager::_logMgr = nullptr;
 std::mutex LogManager::_logMutex;
 bool LogManager::_isInit = false;
+
+LogManager::LogManager() :
+	_conditionMutex(),
+	_condition(),
+	_curLogFileByte(0),
+	_curLogFileIdx(0),
+	_logPath(),
+	_logFile(nullptr),
+	_logLoop(nullptr),
+	_recordableQue(0),
+	_stop(false)
+{ }
 
 bool LogManager::StartLogManager(std::string logPath)
 {

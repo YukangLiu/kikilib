@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 
 //#include <exception>
@@ -48,13 +49,7 @@ namespace kikilib
 	class LogManager
 	{
 	protected:
-		LogManager() {
-			_stop = false;
-			_isInit = false;
-			_recordableQue.store(0);
-			_curLogFileByte = 0;
-			_curLogFileIdx = 0;
-		};
+		LogManager();
 
 		~LogManager() {};
 
@@ -93,14 +88,14 @@ namespace kikilib
 		//用于保护的锁，为了服务器执行效率，原则上不允许长久占有此锁
 		static std::mutex _logMutex;
 
+		//是否已经初始化
+		static bool _isInit;
+
 		//和条件变量配合使用的锁
 		std::mutex _conditionMutex;
 
 		//用于唤醒写日志线程
 		std::condition_variable _condition;
-
-		//是否已经初始化
-		static bool _isInit;
 
 		//当前正在写的日志文件的字节大小
 		int64_t _curLogFileByte;
@@ -117,13 +112,13 @@ namespace kikilib
 		//写日志的线程
 		std::thread* _logLoop;
 
-		//两个队列，一条用于线程取数据写日志，另一条用于添加throw出来的异常
-		//当线程写日志清空队列后，修改_recordableQue的值，然后对另外一条队列进行写日志
-		std::queue<std::string> _logQue[2];
-
 		//当前可用于存入需写数据的队列
 		std::atomic_int _recordableQue;
 
 		bool _stop;
+
+		//两个队列，一条用于线程取数据写日志，另一条用于添加throw出来的异常
+		//当线程写日志清空队列后，修改_recordableQue的值，然后对另外一条队列进行写日志
+		std::queue<std::string> _logQue[2];
 	};
 }

@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 
 #include "Socket.h"
@@ -43,10 +44,10 @@ namespace kikilib
 		Socket _sock;
 
 		//自身缓冲区的左边界
-		int _leftBorder;
+		size_t _leftBorder;
 
 		//自身缓冲区的右边界
-		int _rightBorder;
+		size_t _rightBorder;
 
 		//自身所属的事件服务
 		EventService* _pEvServe;

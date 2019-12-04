@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "EventEpoller.h"
 #include "LogManager.h"
 #include "EventService.h"
@@ -12,23 +13,40 @@
 using namespace kikilib;
 
 EventEpoller::EventEpoller()
-	: _epollFd(::epoll_create1(EPOLL_CLOEXEC)), _activeEpollEvents(Parameter::epollEventListFirstSize)
-{
-	if (_epollFd < 0)
-	{
-		RecordLog(ERROR_DATA_INFORMATION, std::string("epoll fd create failed. errno : ") + std::to_string(errno));
-	}
-}
+	: _epollFd(-1), _activeEpollEvents(Parameter::epollEventListFirstSize)
+{ }
 
 EventEpoller::~EventEpoller() 
 {
-	::close(_epollFd);
+	if (_epollFd >= 0 )
+	{
+		::close(_epollFd);
+	}
 };
 
+bool EventEpoller::Init()
+{
+	_epollFd = ::epoll_create1(EPOLL_CLOEXEC);
+	return IsEpollFdUsefulAndMark();
+}
+
+bool EventEpoller::IsEpollFdUsefulAndMark()
+{
+	if (_epollFd < 0)
+	{
+		RecordLog(ERROR_DATA_INFORMATION, std::string("epoll fd unuseful. errno : "));
+		return false;
+	}
+	return true;
+}
 
 //修改EventEpoller中的事件
 void EventEpoller::MotifyEv(EventService* evServ)
 {
+	if (!IsEpollFdUsefulAndMark())
+	{
+		return;
+	}
 	if (!evServ)
 	{
 		RecordLog(WARNING_DATA_INFORMATION, "tring to motify a nullptr event!");
@@ -48,6 +66,10 @@ void EventEpoller::MotifyEv(EventService* evServ)
 //向EventEpoller中添加事件
 void EventEpoller::AddEv(EventService* evServ)
 {
+	if (!IsEpollFdUsefulAndMark())
+	{
+		return;
+	}
 	if (!evServ)
 	{
 		RecordLog(WARNING_DATA_INFORMATION, "tring to all a nullptr event!");
@@ -67,6 +89,10 @@ void EventEpoller::AddEv(EventService* evServ)
 //从EventEpoller中移除事件
 void EventEpoller::RemoveEv(EventService* evServ)
 {
+	if (!IsEpollFdUsefulAndMark())
+	{
+		return;
+	}
 	if (!evServ)
 	{
 		return;
@@ -84,11 +110,15 @@ void EventEpoller::RemoveEv(EventService* evServ)
 
 void EventEpoller::GetActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs)
 {
+	if (!IsEpollFdUsefulAndMark())
+	{
+		return;
+	}
 	int actEvNum = ::epoll_wait(_epollFd, &*_activeEpollEvents.begin(), static_cast<int>(_activeEpollEvents.size()), timeOutMs);
 	int savedErrno = errno;
 	if (actEvNum > 0)
 	{
-		if (actEvNum > _activeEpollEvents.size())
+		if (actEvNum > static_cast<int>(_activeEpollEvents.size()))
 		{
 			RecordLog(ERROR_DATA_INFORMATION, "unknown err in GetActServ()!");
 			return;
@@ -100,7 +130,7 @@ void EventEpoller::GetActEvServ(int timeOutMs, std::vector<EventService*>& activ
 			evServ->SetEventState(_activeEpollEvents[i].events);
 			activeEvServs.push_back(evServ);
 		}
-		if (actEvNum == _activeEpollEvents.size())
+		if (actEvNum == static_cast<int>(_activeEpollEvents.size()))
 		{
 			//若从epoll中获取事件的数组满了，说明这个数组的大小可能不够，扩展一倍
 			_activeEpollEvents.resize(_activeEpollEvents.size() * 2);

@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #pragma once
 
 #include "utils.h"
@@ -22,9 +23,8 @@ namespace kikilib {
 	{
 	public:
 		explicit Socket(int sockfd, std::string ip = "", int port = -1)
-			: _sockfd(sockfd), _ip(std::move(ip)), _port(port)
+			: _sockfd(sockfd), _pRef(new int(1)), _port(port), _ip(std::move(ip))
 		{
-			_pRef = new int(1);
 			if (sockfd > 0)
 			{
 				SetNonBolckSocket();
@@ -32,10 +32,9 @@ namespace kikilib {
 		}
 
 		Socket()
-			: _sockfd(::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP)), _ip(""), _port(-1)
-		{
-			_pRef = new int(1);
-		}
+			: _sockfd(::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP)),
+			_pRef(new int(1)), _port(-1), _ip("")
+		{ }
 
 		Socket(const Socket& otherSock) : _sockfd(otherSock._sockfd)
 		{

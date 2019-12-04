@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "EventManager.h"
 #include "LogManager.h"
 #include "EventService.h"
@@ -11,12 +12,19 @@
 
 using namespace kikilib;
 
-EventManager::EventManager(int idx, ThreadPool* threadPool) : _idx(idx), _pThreadPool(threadPool), _quit(false), _pLooper(nullptr), _pTimer(nullptr)
+EventManager::EventManager(int idx, ThreadPool* threadPool) 
+	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr)
 { }
 
 EventManager::~EventManager()
 {
 	_quit = true;
+	RecordLog(ERROR_DATA_INFORMATION, std::to_string(_idx) + " EventManager being deleted!");
+	if (_pLooper)
+	{
+		_pLooper->join();
+		delete _pLooper;
+	}
 	for (auto pEvServ : _eventSet)
 	{
 		delete pEvServ;
@@ -25,19 +33,20 @@ EventManager::~EventManager()
 	{
 		delete _pTimer;
 	}
-	if (_pLooper)
-	{
-		_pLooper->join();
-		delete _pLooper;
-	}
 }
 
-void EventManager::Loop()
+bool EventManager::Loop()
 {
 	if (_pThreadPool == nullptr)
 	{//判断线程池工具是否有效
 		RecordLog(ERROR_DATA_INFORMATION, std::to_string(_idx) + " get a null threadpool!");
-		return;
+		return false;
+	}
+	//初始化EventEpoller
+	if (!_epoller.Init())
+	{
+		RecordLog(ERROR_DATA_INFORMATION, std::to_string(_idx) + " init epoll fd failed!");
+		return false;
 	}
 	//初始化定时器服务
 	int timeFd = ::timerfd_create(CLOCK_MONOTONIC,
@@ -45,7 +54,7 @@ void EventManager::Loop()
 	if (timeFd < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION,std::to_string(_idx) + " eventManager timer init failed!");
-		return;
+		return false;
 	}
 	Socket timeSock(timeFd);
 	_pTimer = new Timer(timeSock);
@@ -111,6 +120,7 @@ void EventManager::Loop()
 			}
 		}
 		);
+	return true;
 }
 
 //向事件管理器中插入一个事件

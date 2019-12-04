@@ -1,3 +1,4 @@
+//@Author Liu Yukang 
 #include "EventService.h"
 #include "EventManager.h"
 #include "LogManager.h"
@@ -8,8 +9,8 @@
 using namespace kikilib;
 
 EventService::EventService(Socket sock, EventManager* evMgr, int interestEvent)
-	: _sock(sock), _pMyEvMgr(evMgr), _interestEvent(interestEvent), _isConnected(true), \
-	_bufReader(sock), _bufWritter(sock, this), _eventPriority(NORMAL_EVENT)
+	: _interestEvent(interestEvent), _eventState(0), _eventPriority(NORMAL_EVENT),
+	_isConnected(true), _sock(sock), _pMyEvMgr(evMgr), _bufWritter(sock, this), _bufReader(sock)
 {}
 
 void EventService::Close()
