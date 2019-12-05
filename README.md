@@ -24,7 +24,7 @@
 <br>
 <br>
 5、http及chatroom使用：<br>
-	http：编译后运行即可。<br>
+	http：编译后运行即可。测试站点：www.liuyukang.com<br>
 	chatroom：编译后，修改config.txt中的端口号为监听的端口号，运行即可。文件夹中提供一个client的windows下的执行文件，修改clientconfig.txt为服务器的ip和端口号运行即可。<br>
 <br>
 <br>
