@@ -18,6 +18,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	kikilib：网络库的源代码。<br>
 	http：使用kikilib网络库实现的一个简单的静态网页服务器。<br>
 	chatroom：使用kikilib网络库实现的一个简单的聊天室服务器（可以认为是广播协议）。<br>
+	test：测试工程，加上http和chatroom将所有函数都使用上了。<br>
 <br>
 <br>
 4、编译：<br>
