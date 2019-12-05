@@ -46,5 +46,5 @@
 	测试环境：4核CPU3.70GHz，8G内存3200MHz<br>
 	使用webbench对本机http进行了简单的压力测试：<br>
 	10000 clients, running 600 sec.<br>
-	Speed=1338931 pages/min, 11001020 bytes/sec.<br>
+	Speed=1338931 pages/min, -568964 bytes/sec.<br>
 	Requests: 13389316 susceed, 0 failed.<br>
