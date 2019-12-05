@@ -1,4 +1,7 @@
 # kikilib网络库
+blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
+<br>
+<br>
 1、定位：<br>
 	kikilib网络库是一个专用于Linux的面向对象的c++轻量级高性能网络库。而非传统的面向回调函数和上下文指针的网络库。<br>
 <br>
