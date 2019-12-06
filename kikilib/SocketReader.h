@@ -29,7 +29,7 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SocketReader);
 
 		//缓冲区是否为空
-		bool IsEmpty();
+		bool IsEmptyAfterRead();
 
 		//读取一个int，若缓存中没有，则返回false
 		bool ReadInt32(int& res);

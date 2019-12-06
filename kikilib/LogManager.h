@@ -9,7 +9,10 @@
 #include <stdio.h>
 #include <thread>
 #include <condition_variable>
+#include <array>
 
+#include "Parameter.h"
+#include "Sequence.h"
 #include "utils.h"
 //#include <stdarg.h>
 
@@ -27,6 +30,7 @@ enum LogDataType
 //关闭日志管理器
 #define EndLogMgr() (kikilib::LogManager::GetLogMgr()->EndLogManager())
 //记录日志，使用该宏即可
+//注意，为了效率，所有的日志内容都是转移的，即调用完该函数，原始string内容会没有了，用户若需要备份需要自己拷贝一份
 #define RecordLog(...) (kikilib::LogManager::GetLogMgr()->Record(__VA_ARGS__))
 
 namespace kikilib
@@ -55,7 +59,6 @@ namespace kikilib
 
 	public:
 
-		//日志管理者类不允许复制
 		DISALLOW_COPY_MOVE_AND_ASSIGN(LogManager);
 
 		//初始化LogManager，调用方法为kikilib::LogManager::GetLogMgr()->InitLogManager(path)
@@ -91,9 +94,6 @@ namespace kikilib
 		//是否已经初始化
 		static bool _isInit;
 
-		//和条件变量配合使用的锁
-		std::mutex _conditionMutex;
-
 		//用于唤醒写日志线程
 		std::condition_variable _condition;
 
@@ -112,13 +112,17 @@ namespace kikilib
 		//写日志的线程
 		std::thread* _logLoop;
 
-		//当前可用于存入需写数据的队列
-		std::atomic_int _recordableQue;
+		Sequence _stop;
 
-		bool _stop;
+		//最后一个已读内容位置
+		Sequence _lastRead;
 
-		//两个队列，一条用于线程取数据写日志，另一条用于添加throw出来的异常
-		//当线程写日志清空队列后，修改_recordableQue的值，然后对另外一条队列进行写日志
-		std::queue<std::string> _logQue[2];
+		//最后一个已写内容位置
+		Sequence _lastWrote;
+
+		//当前可写的槽位序号
+		AtomicSequence _writableSeq;
+
+		std::array<std::string, Parameter::kLogBufferLen> _ringBuf;
 	};
 }

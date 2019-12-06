@@ -7,7 +7,7 @@
 
 using namespace kikilib;
 
-bool SocketReader::IsEmpty()
+bool SocketReader::IsEmptyAfterRead()
 {
 	if (_rightBorder == _leftBorder)
 	{
@@ -23,7 +23,6 @@ bool SocketReader::IsEmpty()
 //读取一个int，若缓存中没有，则返回false
 bool SocketReader::ReadInt32(int& res)
 {
-	ReadFillBuf();
 	std::string tmpStr;
 	size_t newLeft = _leftBorder;
 	bool isPositive = true;
@@ -122,7 +121,7 @@ std::string SocketReader::ReadAll()
 //读一行，该行以\r\n结尾
 std::string SocketReader::ReadLineEndOfRN()
 {
-	ReadFillBuf();
+	//ReadFillBuf();
 	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{
@@ -148,7 +147,7 @@ std::string SocketReader::ReadLineEndOfRN()
 //读一行，该行以\r结尾
 std::string SocketReader::ReadLineEndOfR()
 {
-	ReadFillBuf();
+	//ReadFillBuf();
 	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{
@@ -174,7 +173,7 @@ std::string SocketReader::ReadLineEndOfR()
 //读一行，该行以\n结尾
 std::string SocketReader::ReadLineEndOfN()
 {
-	ReadFillBuf();
+	//ReadFillBuf();
 	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder, endPos = tmpLeft;
 	for (; endPos < tmpRight; ++endPos)
 	{

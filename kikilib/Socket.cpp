@@ -108,8 +108,6 @@ Socket Socket::Accept()
 		return Socket(connfd);
 	}
 
-	SetTcpNoDelay(Parameter::isNoDelay);
-
 	//accept成功保存用户ip
 	struct sockaddr_in* sock = (struct sockaddr_in*) & client;
 	int port = ntohs(sock->sin_port);          //linux上打印方式

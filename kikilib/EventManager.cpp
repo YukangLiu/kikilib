@@ -144,15 +144,20 @@ void EventManager::Remove(EventService* ev)
 	{
 		return;
 	}
-	//从映射表中删除事件
-    std::lock_guard<std::mutex> lock(_eventSetMutex);
-	auto it = _eventSet.find(ev);
-	if (it != _eventSet.end())
-	{
-		_eventSet.erase(it);
+	
+	{//从映射表中删除事件
+		std::lock_guard<std::mutex> lock(_eventSetMutex);
+		auto it = _eventSet.find(ev);
+		if (it != _eventSet.end())
+		{
+			_eventSet.erase(it);
+		}
 	}
-	//放入被移除事件列表
-	_removedEv.push_back(ev);
+	
+	{//放入被移除事件列表
+		std::lock_guard<std::mutex> lock(_removedEvMutex);
+		_removedEv.push_back(ev);
+	}
 }
 
 //向事件管理器中修改一个事件服务所关注的事件类型

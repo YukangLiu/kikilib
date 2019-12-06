@@ -9,5 +9,6 @@ TimerEventService::TimerEventService(Timer* timer, Socket sock, EventManager* ev
 
 void TimerEventService::HandleReadEvent()
 {
+	ReadAll();
 	_pTimer->RunExpired();
 }

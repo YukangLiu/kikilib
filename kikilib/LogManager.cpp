@@ -1,8 +1,5 @@
 //@Author Liu Yukang 
 #include "LogManager.h"
-#include "Parameter.h"
-
-#define BYTE_PER_LOGQUE_STRING 60 //日志队列每个string元素的字节大小估算值
 
 using namespace kikilib;
 
@@ -12,15 +9,14 @@ std::mutex LogManager::_logMutex;
 bool LogManager::_isInit = false;
 
 LogManager::LogManager() :
-	_conditionMutex(),
-	_condition(),
 	_curLogFileByte(0),
 	_curLogFileIdx(0),
-	_logPath(),
 	_logFile(nullptr),
 	_logLoop(nullptr),
-	_recordableQue(0),
-	_stop(false)
+	_stop(0L),
+	_lastRead(-1L),
+	_lastWrote(-1L),
+	_writableSeq(0L)
 { }
 
 bool LogManager::StartLogManager(std::string logPath)
@@ -50,7 +46,8 @@ bool LogManager::StartLogManager(std::string logPath)
 
 void LogManager::EndLogManager()
 {
-	_stop = true;
+	_stop.store(1L);
+	_condition.notify_one();
 	_logLoop->join();
 	::fclose(_logFile);
 	_isInit = false;
@@ -76,18 +73,7 @@ LogManager* LogManager::GetLogMgr()
 
 void LogManager::Record(std::string& logDate)
 {
-	std::lock_guard<std::mutex> lock(_logMutex);//线程安全
-	int curQue = _recordableQue.load();
-	_logQue[curQue].emplace(logDate);
-	_condition.notify_one();
-}
-
-void LogManager::Record(std::string&& logDate)
-{
-	std::lock_guard<std::mutex> lock(_logMutex);//线程安全
-	int curQue = _recordableQue.load();
-	_logQue[curQue].emplace(std::move(logDate));
-	_condition.notify_one();
+	Record(std::move(logDate));
 }
 
 void LogManager::Record(const char* logData)
@@ -102,12 +88,35 @@ void LogManager::Record(unsigned dataType, const char* logData)
 
 void LogManager::Record(unsigned dataType, std::string& logData)
 {
-	Record(std::move(LogDataTypeStr[dataType] +  logData));
+	Record(std::move(LogDataTypeStr[dataType] + logData));
 }
 
 void LogManager::Record(unsigned dataType, std::string&& logData)
 {
-	Record(std::move(LogDataTypeStr[dataType] +  logData));
+	Record(std::move(LogDataTypeStr[dataType] + logData));
+}
+
+void LogManager::Record(std::string&& logDate)
+{
+	if (_writableSeq.load() - _lastRead.load() >= Parameter::kLogBufferLen - 1)
+	{//满了放弃该条日志，因为这种情况下往往前面的日志更有价值
+		return;
+	}
+	const int64_t writableSeq = _writableSeq.fetch_add(1);
+	
+	//写操作
+	_ringBuf[writableSeq & (Parameter::kLogBufferLen - 1)] = std::move(logDate);
+	//volatile int a = 0;
+	while (writableSeq - 1L != _lastWrote.load())
+	{//因为写操作速度相当，所以这里一般不会阻塞,需要注意的，这个_lastWrote里面的值是volatile的，所以这里这样写才没有问题
+	}
+	_lastWrote.store(writableSeq);
+
+	if (writableSeq == _lastRead.load() + 1)
+	{
+		std::unique_lock<std::mutex> lock(_logMutex);
+		_condition.notify_one();
+	}
 }
 
 void LogManager::WriteDownLog()
@@ -115,32 +124,19 @@ void LogManager::WriteDownLog()
 	const int64_t kMaxPerLogFileByte = Parameter::maxLogDiskByte / 2;
 	while (true)
 	{
-		if (_stop)
+		if (_stop.load() && _lastRead.load() == _lastWrote.load())
 		{
 			return;
 		}
 		else
 		{//只要可写，就必须要写完
-			//日志内容先记录到另一队列中
-			int curWritingQue = _recordableQue.load();
-			_recordableQue.store(!curWritingQue);
-
 			//开始打印当前日志内容队列
-			if ((Parameter::maxLogQueueByte / 2) < (_logQue[curWritingQue].size() * BYTE_PER_LOGQUE_STRING) && _logQue[!curWritingQue].size())
+			while (_lastRead.load() < _lastWrote.load())
 			{
-				//队列每个string按BYTE_PER_LOGQUE_STRING字节估算，若当前队列日志缓存占用内存太大
-				//则意味着RecordLog的速度很快，是某个地方发生了剧烈的错误，这种时候，往往只是前面一些
-				//日志是关键的，后面的日志则都无关紧要，故立即舍弃掉当前队列，以防止内存爆满，同时追上
-				//RecordLog的速度
-				while (!_logQue[curWritingQue].empty())
+				while (_lastRead.load() < _lastWrote.load())
 				{
-					_logQue[curWritingQue].pop();
-				}
-			}
-			else
-			{
-				while (!_logQue[curWritingQue].empty())
-				{
+					int64_t curRead = _lastRead.load() + 1;
+
 					if (_curLogFileByte > kMaxPerLogFileByte)
 					{//磁盘要爆满了，舍弃旧的日志
 						fflush(_logFile);
@@ -152,23 +148,23 @@ void LogManager::WriteDownLog()
 						std::string fileMsg = "cur file idx : " + std::to_string(_curLogFileIdx) + '\n';
 						fwrite(fileMsg.c_str(), fileMsg.size(), 1, _logFile);
 					}
-					std::string& buf = _logQue[curWritingQue].front();
+					std::string& buf = _ringBuf[curRead & (Parameter::kLogBufferLen - 1)];
 					buf.append("\n");
 					fwrite(buf.c_str(), buf.size(), 1, _logFile);
-					_logQue[curWritingQue].pop();
-					_curLogFileByte += BYTE_PER_LOGQUE_STRING;
+					_curLogFileByte += buf.size();
+					buf.clear();
+					_lastRead.store(curRead);
 				}
 				fflush(_logFile);
 			}
 
-			{//如果另一条队列没数据了，则阻塞
+			{//如果没数据了，则阻塞
 				std::unique_lock<std::mutex> lock(_logMutex);
-				if (_logQue[!curWritingQue].empty())
+				if (!_stop.load() && _lastRead.load() == _lastWrote.load())
 				{
 					_condition.wait(lock);
 				}
 			}
-
 		}
 	}
 }

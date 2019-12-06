@@ -46,7 +46,7 @@ void EventService::HandleEvent()
 	}
 	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
 	{
-		if (!_bufReader.IsEmpty())
+		if (!_bufReader.IsEmptyAfterRead())
 		{
 			HandleReadEvent();
 		}
