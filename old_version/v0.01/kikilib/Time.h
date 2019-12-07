@@ -7,7 +7,7 @@ struct timespec;
 
 namespace kikilib
 {
-	//时间类，单位：微秒ms
+	//时间类，单位：微秒us
 	class Time
 	{
 	public:
@@ -50,12 +50,12 @@ namespace kikilib
 
 	inline bool operator > (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() < rhs.GetTimeVal();
+		return lhs.GetTimeVal() > rhs.GetTimeVal();
 	}
 
 	inline bool operator >= (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() <= rhs.GetTimeVal();
+		return lhs.GetTimeVal() >= rhs.GetTimeVal();
 	}
 
 	inline bool operator == (Time lhs, Time rhs)

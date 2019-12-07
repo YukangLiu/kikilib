@@ -203,6 +203,23 @@ void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 
 }
 
+//每过time时间执行一次timerCb函数,直到isContinue函数返回false
+void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+{
+	std::function<void()> realTimerCb(
+		[this, time, timerCb, isContinue]
+		{
+			if (isContinue())
+			{
+				timerCb();
+				this->RunEveryUntil(time, timerCb, isContinue);
+			}
+		}
+		);
+
+	RunAfter(time, realTimerCb);
+}
+
 //将任务放在线程池中以达到异步执行的效果
 void EventManager::RunInThreadPool(std::function<void()>&& func)
 {

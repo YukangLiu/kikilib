@@ -144,15 +144,20 @@ void EventManager::Remove(EventService* ev)
 	{
 		return;
 	}
-	//从映射表中删除事件
-    std::lock_guard<std::mutex> lock(_eventSetMutex);
-	auto it = _eventSet.find(ev);
-	if (it != _eventSet.end())
-	{
-		_eventSet.erase(it);
+	
+	{//从映射表中删除事件
+		std::lock_guard<std::mutex> lock(_eventSetMutex);
+		auto it = _eventSet.find(ev);
+		if (it != _eventSet.end())
+		{
+			_eventSet.erase(it);
+		}
 	}
-	//放入被移除事件列表
-	_removedEv.push_back(ev);
+	
+	{//放入被移除事件列表
+		std::lock_guard<std::mutex> lock(_removedEvMutex);
+		_removedEv.push_back(ev);
+	}
 }
 
 //向事件管理器中修改一个事件服务所关注的事件类型
@@ -196,6 +201,23 @@ void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 
 	RunAfter(time, realTimerCb);
 
+}
+
+//每过time时间执行一次timerCb函数,直到isContinue函数返回false
+void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+{
+	std::function<void()> realTimerCb(
+		[this, time, timerCb, isContinue]
+		{
+			if (isContinue())
+			{
+				timerCb();
+				this->RunEveryUntil(time, timerCb, isContinue);
+			}
+		}
+		);
+
+	RunAfter(time, realTimerCb);
 }
 
 //将任务放在线程池中以达到异步执行的效果

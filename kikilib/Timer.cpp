@@ -18,9 +18,9 @@ void Timer::RunExpired()
 			std::lock_guard<std::mutex> lock(_timerMutex);
 			it = _timerCbMap.begin();
 			end = _timerCbMap.end();
-			if (it != end && it->first < nowTime)
+			if (it == end || it->first < nowTime)
 			{
-				isDo = true;
+				isDo = false;
 			}
 		}
 		
@@ -28,8 +28,14 @@ void Timer::RunExpired()
 		{
 			(it->second)();
 		}
-		std::lock_guard<std::mutex> lock(_timerMutex);
-		_timerCbMap.erase(it);
+
+		{
+			std::lock_guard<std::mutex> lock(_timerMutex);
+			if (isDo)
+			{
+				_timerCbMap.erase(it);
+			}
+		}
 	}
 	
 	if (!_timerCbMap.empty())

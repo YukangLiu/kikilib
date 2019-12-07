@@ -50,12 +50,12 @@ namespace kikilib
 
 	inline bool operator > (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() < rhs.GetTimeVal();
+		return lhs.GetTimeVal() > rhs.GetTimeVal();
 	}
 
 	inline bool operator >= (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() <= rhs.GetTimeVal();
+		return lhs.GetTimeVal() >= rhs.GetTimeVal();
 	}
 
 	inline bool operator == (Time lhs, Time rhs)

@@ -62,6 +62,9 @@ namespace kikilib
 		//每过time时间执行一次timerCb函数
 		void RunEvery(Time time, std::function<void()> timerCb);
 
+		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
+		void RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue);
+
 		//将任务放在线程池中以达到异步执行的效果
         void RunInThreadPool(std::function<void()>&& func);
 

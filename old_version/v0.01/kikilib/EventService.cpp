@@ -46,7 +46,7 @@ void EventService::HandleEvent()
 	}
 	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
 	{
-		if (!_bufReader.IsEmpty())
+		if (!_bufReader.IsEmptyAfterRead())
 		{
 			HandleReadEvent();
 		}
@@ -131,6 +131,12 @@ void EventService::RunAfter(Time time, std::function<void()> timerCb)
 void EventService::RunEvery(Time time, std::function<void()> timerCb) 
 { 
 	_pMyEvMgr->RunEvery(time, timerCb); 
+}
+
+//每过time时间执行一次timerCb函数,直到isContinue函数返回false
+void EventService::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+{
+	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
 }
 
 //将任务放在线程池中以达到异步执行的效果

@@ -13,10 +13,17 @@ namespace kikilib
 		const static std::string logName("Log.txt");
 
 		//日志在占内存的最大大小（Byte），大于该数会舍弃掉一部分日志内容，防止内存爆满
-		const int64_t maxLogQueueByte = 1073741824; //1024 * 1024 * 1024 * 1, 1GB
+		//const int64_t maxLogQueueByte = 1073741824; //1024 * 1024 * 1024 * 1, 1GB
 
 		//日志在占磁盘的最大大小（Byte），大于该数会舍弃掉一个日志文件，重新开始写，防止磁盘爆满
-		const int64_t maxLogDiskByte = 21474836480; //20 * 1024 * 1024 * 1024, 20GB
+		const int64_t maxLogDiskByte = 1073741824; //1024 * 1024 * 1024, 1GB
+
+		//日志中的ringbuffer的长度，需要是2的n次幂,一个std::string大小是40字节，加上字符串假设60字节，
+		//所以该数字*100可以认为是内存允许分给日志系统的大小，如4194304表示内存最多给日志419MB空间
+		const int64_t kLogBufferLen = 4194304;
+
+		static_assert(((kLogBufferLen > 0) && ((kLogBufferLen& (~kLogBufferLen + 1)) == kLogBufferLen)),
+			"RingBuffer's size must be a positive power of 2");
 
 		//线程池中线程的数量
 		constexpr static unsigned threadPoolCnt = 4;

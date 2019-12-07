@@ -43,14 +43,38 @@ void KikitestService::HandleReadEvent()
 			break;
 
 		case -3:
+			str = ReadAll();
+			RunAfter(
+				1000000,
+				[this]
+				{
+					this->MotifyVal();
+				}
+				);
+			RunEveryUntil(20000,
+				[this]
+				{
+					RecordLog(std::to_string(this->GetVal()));
+				},
+				[this]()
+					->bool
+				{
+					return this->GetVal() != 100;
+				}
+				);
+			break;
+
+		case -4:
+			str = ReadAll();
 			//我的机器上用双缓存队列50000000条数据是11.26sec
+			//我的机器上用环形队列50000000条数据是5.26sec，快了一倍
 			start = kikilib::Time::now();
 			for (int i = 0; i < 50000000; ++i)
 			{
 				RecordLog(DEBUG_DATA_INFORMATION,std::to_string(i));
 			}
 			end = kikilib::Time::now();
-			printf("%dms\n", (int)(end.GetTimeVal() - start.GetTimeVal()));
+			printf("%dms\n", (int)(end.GetTimeVal() - start.GetTimeVal()) / 1000);
 			break;
 
 		default:
