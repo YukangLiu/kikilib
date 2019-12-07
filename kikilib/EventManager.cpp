@@ -180,11 +180,11 @@ void EventManager::Motify(EventService* ev)
 }
 
 //time时间后执行timerCb函数
-void EventManager::RunAfter(Time time, std::function<void()> timerCb)
+void EventManager::RunAfter(Time time, std::function<void()>&& timerCb)
 {
 	Time runTime(Time::now().GetTimeVal() + time.GetTimeVal());
 
-	_pTimer->RunAt(runTime, timerCb);
+	_pTimer->RunAt(runTime, std::move(timerCb));
 }
 
 //time时间后执行timerCb函数
@@ -199,7 +199,7 @@ void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 		}
 		);
 
-	RunAfter(time, realTimerCb);
+	RunAfter(time, std::move(realTimerCb));
 
 }
 
@@ -217,7 +217,7 @@ void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::
 		}
 		);
 
-	RunAfter(time, realTimerCb);
+	RunAfter(time, std::move(realTimerCb));
 }
 
 //将任务放在线程池中以达到异步执行的效果

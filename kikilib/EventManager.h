@@ -57,7 +57,7 @@ namespace kikilib
 		void Motify(EventService* ev);
 
 		//time时间后执行timerCb函数
-		void RunAfter(Time time, std::function<void()> timerCb);
+		void RunAfter(Time time, std::function<void()>&& timerCb);
 
 		//每过time时间执行一次timerCb函数
 		void RunEvery(Time time, std::function<void()> timerCb);

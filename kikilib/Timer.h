@@ -27,9 +27,12 @@ namespace kikilib
 		void RunExpired();
 
 		//在time时刻需要执行函数cb
-		void RunAt(Time time, std::function<void()> cb);
+		void RunAt(Time time, std::function<void()>&& cb);
 
 	private:
+		//给timefd重新设置时间，time是绝对时间
+		void ResetTimeOfTimefd(Time time);
+
 		Socket _timeSock;
 
 		std::mutex _timerMutex;

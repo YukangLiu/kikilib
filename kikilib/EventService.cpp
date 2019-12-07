@@ -122,9 +122,9 @@ std::string EventService::ReadLineEndOfN()
 }
 
 //time时间后执行timerCb函数
-void EventService::RunAfter(Time time, std::function<void()> timerCb)
+void EventService::RunAfter(Time time, std::function<void()>&& timerCb)
 { 
-	_pMyEvMgr->RunAfter(time, timerCb);
+	_pMyEvMgr->RunAfter(time, std::move(timerCb));
 }
 
 //每过time时间执行timerCb函数
