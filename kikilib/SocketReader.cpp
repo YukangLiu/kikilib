@@ -111,6 +111,10 @@ std::string SocketReader::ReadAll()
 	//一直读到没东西读了
 	while (ReadFillBuf() > 0)
 	{
+		if (_rightBorder != _buffer.size())
+		{
+			break;
+		}
 	}
 	size_t tmpLeft = _leftBorder, tmpRight = _rightBorder;
 	_rightBorder = 0;
