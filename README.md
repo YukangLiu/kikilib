@@ -10,7 +10,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	使用了多Reactor+非阻塞IO，坚持One Loop One Thread，使用Round Robin派发新连接。<br>
 	1、实现了定时器事件。<br>
 	2、实现了线程池工具。（使用线程池+定时器基本可以完成所有会阻塞的任务，达到异步执行的效果）<br>
-	3、实现了双缓存队列的异步日志工具。<br>
+	3、实现了RingBuffer无锁队列的异步日志工具。<br>
 	4、实现了事件按优先级处理。<br>
 <br>
 <br>
