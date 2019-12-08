@@ -10,62 +10,41 @@ using namespace kikilib;
 void Timer::RunExpired()
 {
 	Time nowTime = Time::now();
-	bool isDo = true;
-	std::map<Time, std::function<void()>>::iterator it, end;
-	while(isDo)
-	{//搞得这么复杂，是因为it->second这个函数是有可能操作定时器的，这个时候只有这样才不会死锁
-		{
-			std::lock_guard<std::mutex> lock(_timerMutex);
-			it = _timerCbMap.begin();
-			end = _timerCbMap.end();
-			if (it == end || it->first > nowTime)
-			{
-				isDo = false;
-			}
-		}
-		
-		if (isDo)
-		{
-			(it->second)();
-		}
-
-		{
-			std::lock_guard<std::mutex> lock(_timerMutex);
-			if (isDo)
-			{
-				_timerCbMap.erase(it);
-			}
-		}
+	for(auto it = _timerCbMap.begin(); it != _timerCbMap.end() && it->first <= nowTime; it = _timerCbMap.begin())
+	{
+		(it->second)();
+		_timerCbMap.erase(it);
 	}
 	
 	if (!_timerCbMap.empty())
 	{
-		std::map<Time, std::function<void()>>::iterator it;
-
-		{//不能锁RunAt，因为RunAt中也有同样的锁，会造成死锁
-			std::lock_guard<std::mutex> lock(_timerMutex);
-			it = _timerCbMap.begin();
-		}
-		
+		auto it = _timerCbMap.begin();
 		ResetTimeOfTimefd(it->first);
+	}
+}
+
+void Timer::RunAt(Time time, std::function<void()>& cb)
+{
+	if (_timerCbMap.find(time) != _timerCbMap.end())
+	{//通过加1微秒解决冲突
+		return RunAt(time.GetTimeVal() + 1, cb);
+	}
+	_timerCbMap.insert(std::move(std::pair<Time, std::function<void()>>(time, cb)));
+	if (_timerCbMap.begin()->first == time)
+	{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
+		ResetTimeOfTimefd(time);
 	}
 }
 
 void Timer::RunAt(Time time, std::function<void()>&& cb)
 {
-	bool needSetTime = false;
-
-	{
-		std::lock_guard<std::mutex> lock(_timerMutex);
-		_timerCbMap.insert(std::move(std::pair<Time, std::function<void()>>(time, std::move(cb))));
-		if (_timerCbMap.begin()->first == time)
-		{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
-			needSetTime = true;
-		}
+	if (_timerCbMap.find(time) != _timerCbMap.end())
+	{//通过加1微秒解决冲突
+		return RunAt(time.GetTimeVal() + 1, std::move(cb));
 	}
-
-	if (needSetTime)
-	{
+	_timerCbMap.insert(std::move(std::pair<Time, std::function<void()>>(time, std::move(cb))));
+	if (_timerCbMap.begin()->first == time)
+	{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
 		ResetTimeOfTimefd(time);
 	}
 }

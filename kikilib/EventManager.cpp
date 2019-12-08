@@ -184,7 +184,21 @@ void EventManager::RunAfter(Time time, std::function<void()>&& timerCb)
 {
 	Time runTime(Time::now().GetTimeVal() + time.GetTimeVal());
 
-	_pTimer->RunAt(runTime, std::move(timerCb));
+	{
+		std::lock_guard<std::mutex> lock(_timerMutex);
+		_pTimer->RunAt(runTime, std::move(timerCb));
+	}
+}
+
+//time时间后执行timerCb函数
+void EventManager::RunAfter(Time time, std::function<void()>& timerCb)
+{
+	Time runTime(Time::now().GetTimeVal() + time.GetTimeVal());
+
+	{
+		std::lock_guard<std::mutex> lock(_timerMutex);
+		_pTimer->RunAt(runTime, timerCb);
+	}
 }
 
 //time时间后执行timerCb函数

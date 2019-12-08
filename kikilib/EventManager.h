@@ -58,6 +58,7 @@ namespace kikilib
 
 		//time时间后执行timerCb函数
 		void RunAfter(Time time, std::function<void()>&& timerCb);
+		void RunAfter(Time time, std::function<void()>& timerCb);
 
 		//每过time时间执行一次timerCb函数
 		void RunEvery(Time time, std::function<void()> timerCb);
@@ -87,10 +88,13 @@ namespace kikilib
 		//保证eventSet的线程安全
 		std::mutex _eventSetMutex;
 
+		//保证timer线程安全
+		std::mutex _timerMutex;
+
 		//保证移除事件时的线程安全
 		std::mutex _removedEvMutex;
 
-		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正放入其中
+		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正delete
 		std::vector<EventService*> _removedEv;
 
 		//EventEpoller发现的活跃事件所放的列表
