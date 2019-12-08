@@ -48,7 +48,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
 7、并发度<br>
 	测试环境：4核CPU3.70GHz，8G内存3200MHz<br>
-	使用webbench对本机http进行了简单的压力测试：<br>
+	使用webbench对本机http进行了简单的压力测试，QPS两万多：<br>
 	10000 clients, running 600 sec.<br>
 	Speed=1338931 pages/min, -568964 bytes/sec.<br>
 	Requests: 13389316 susceed, 0 failed.<br>
