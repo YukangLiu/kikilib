@@ -48,7 +48,7 @@ namespace kikilib {
 		{
 			*(otherSock._pRef) += 1;
 			_pRef = otherSock._pRef;
-			_ip = otherSock._ip;
+			_ip = std::move(otherSock._ip);
 			_port = otherSock._port;
 		}
 

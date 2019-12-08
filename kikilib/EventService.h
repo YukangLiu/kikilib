@@ -39,17 +39,18 @@ namespace kikilib
 
 		//////////////////////////////自身socket的操作API//////////////////////////////////
 
-		int fd() { return _sock.fd(); };
+		int GetFd() { return _sock.fd(); };
 
-		std::string peerIP() { return _sock.GetIp(); };
+		std::string GetPeerIP() { return _sock.GetIp(); };
 
-		int peerPort() { return _sock.GetPort(); };
+		int GetPeerPort() { return _sock.GetPort(); };
 
 		//获取套接字的选项的字符串
 		std::string GetSocketOptString() { return _sock.GetSocketOptString(); };
 
 		//关闭当前事件
 		void Close();
+		void ShutDownWrite();
 
 		///////////////////////////////自身事件的操作API///////////////////////////////////
 

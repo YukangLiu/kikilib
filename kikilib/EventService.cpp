@@ -29,6 +29,11 @@ void EventService::Close()
 
 }
 
+void EventService::ShutDownWrite()
+{
+	_sock.ShutdownWrite();
+}
+
 void EventService::SetInteresEv(int newInterestEv)
 {
 	_interestEvent = newInterestEv;

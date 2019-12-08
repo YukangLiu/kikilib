@@ -56,7 +56,7 @@ void EventEpoller::MotifyEv(EventService* evServ)
 	memset(&event, 0, sizeof(event));
 	event.events = evServ->GetInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->fd();
+	int fd = evServ->GetFd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event motify. errno : ") + std::to_string(errno));
@@ -79,7 +79,7 @@ void EventEpoller::AddEv(EventService* evServ)
 	memset(&event, 0, sizeof(event));
 	event.events = evServ->GetInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->fd();
+	int fd = evServ->GetFd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event add. errno : ") + std::to_string(errno));
@@ -101,7 +101,7 @@ void EventEpoller::RemoveEv(EventService* evServ)
 	memset(&event, 0, sizeof(event));
 	event.events = evServ->GetInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->fd();
+	int fd = evServ->GetFd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event remove. errno : ") + std::to_string(errno));

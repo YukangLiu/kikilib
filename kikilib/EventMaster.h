@@ -118,6 +118,7 @@ namespace kikilib
 					//}
 					continue;
 				}
+				conn.SetTcpNoDelay(Parameter::isNoDelay);
 				RecordLog("accept a new usr ,ip : " + conn.GetIp());
 				int nextMgrIdx = _mgrSelector.Next();
 				EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
@@ -127,10 +128,6 @@ namespace kikilib
 					if (ev->IsConnected())
 					{
 						_evMgrs[nextMgrIdx]->Insert(ev);
-					}
-					else
-					{
-						delete ev;
 					}
 				}
 			}

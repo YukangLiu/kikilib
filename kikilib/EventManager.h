@@ -57,6 +57,7 @@ namespace kikilib
 		void Motify(EventService* ev);
 
 		//time时间后执行timerCb函数
+		//一个time就八个字节，搞引用相当于一个指针还是分配了八个字节（x64），所以time不搞&和&&
 		void RunAfter(Time time, std::function<void()>&& timerCb);
 		void RunAfter(Time time, std::function<void()>& timerCb);
 
