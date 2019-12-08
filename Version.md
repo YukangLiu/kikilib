@@ -18,3 +18,4 @@ V0.02(当前版本，更新中，√为已完成项):<br>
 4、优雅断开连接。<br>
 5、减少read调用次数，虽然epoll用的是LT，但是每次读事件尽量只read一次，提高效率。√<br>
 6、将EventService中的API剥离出来专门的类EventServiceTool中。<br>
+7、移除了timer中的锁，将EventManager中所有组件的锁全部移到EventManager中√。<br>
