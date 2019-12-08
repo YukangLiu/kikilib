@@ -1,5 +1,5 @@
 //@Author Liu Yukang 
-#include "ChatRoomServiceFactory.h"
+#include "ChatRoomService.h"
 #include "EventMaster.h"
 
 #include<string> 
@@ -17,10 +17,9 @@ int DecodeConfigFile()
 
 int main()
 {
-	ChatRoomServiceFactory fac;
 	std::string ip;
 	int port = DecodeConfigFile();
-	kikilib::EventMaster evMaster(&fac);
+	kikilib::EventMaster<ChatRoomService> evMaster;
 	evMaster.Loop(1,port);
 	return 0;
 }

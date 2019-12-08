@@ -21,7 +21,8 @@ namespace kikilib
 	class SocketWtitter
 	{
 	public:
-		SocketWtitter(Socket sock, EventService* pEvServe);
+		SocketWtitter(Socket& sock, EventService* pEvServe);
+		SocketWtitter(Socket&& sock, EventService* pEvServe);
 
 		~SocketWtitter() {};
 

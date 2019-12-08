@@ -30,10 +30,7 @@ namespace kikilib
 	//   HandleReadEvent(),HandleErrEvent,HandleCloseEvent()
 	//   函数即可，可自定义自己的私有成员，代替了大多数网络库
 	//   中的context上下文指针，生命器管理也更容易
-	//2、用户继承EventServiceFactory类，实现一个创建该对象的方法
-	//   然后将工厂类实例传给EventMaster，服务器即可运转，每有一个
-	//   新的连接到来，EventMaster就会使用工厂创建一个该事件服务为
-	//   新的连接服务
+	//2、使用EventMaster时，将该类型放在EventMaster的模板中
 	class EventService
 	{
 	public:
@@ -144,7 +141,8 @@ namespace kikilib
 		bool IsConnected() { return _isConnected; }
 
 	public:
-		EventService(Socket sock, EventManager* evMgr, int interestEvent = EPOLLIN | EPOLLPRI | EPOLLRDHUP);
+		EventService(Socket& sock, EventManager* evMgr, int interestEvent = EPOLLIN | EPOLLPRI | EPOLLRDHUP);
+		EventService(Socket&& sock, EventManager* evMgr, int interestEvent = EPOLLIN | EPOLLPRI | EPOLLRDHUP);
 
 		virtual ~EventService() {};
 

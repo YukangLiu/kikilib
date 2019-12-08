@@ -18,7 +18,8 @@ namespace kikilib
 	class Timer
 	{
 	public:
-		Timer(Socket timeFd) : _timeSock(timeFd) {}
+		Timer(Socket& timeSock) : _timeSock(timeSock) {}
+		Timer(Socket&& timeSock) : _timeSock(timeSock) {}
 		~Timer() {}
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(Timer);

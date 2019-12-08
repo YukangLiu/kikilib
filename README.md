@@ -42,8 +42,8 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	5、提供线程池工具的操作API<br>
 	6、提供socket缓冲区的读写操作API<br>
 	使用方法：<br>
-	1、用户继承该类，实现其中的HandleConnectionEvent(),HandleReadEvent(),HandleErrEvent,HandleCloseEvent()函数即可，可自定义自己的私有成员，代替了大多数网络库中的context上下文指针，生命器管理也更容易。<br>
-	2、用户继承EventServiceFactory类，实现一个创建该对象的方法然后将工厂类实例传给EventMaster，服务器即可运转，每有一个新的连接到来，EventMaster就会使用工厂为新的连接创建一个该事件服务对象。<br>
+	1、用户继承EventService类，实现其中的HandleConnectionEvent(),HandleReadEvent(),HandleErrEvent,HandleCloseEvent()函数即可，可自定义自己的私有成员，代替了大多数网络库中的context上下文指针，生命器管理也更容易。<br>
+	2、将具体的EventService类型放在EventMaster模板中，服务器即可运转，每有一个新的连接到来，EventMaster就会为新的连接创建一个该事件服务对象。<br>
 <br>
 <br>
 7、并发度<br>

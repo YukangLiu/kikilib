@@ -1,5 +1,5 @@
 //@Author Liu Yukang 
-#include "KikitestServiceFactory.h"
+#include "KikitestService.h"
 #include "EventMaster.h"
 
 #include<string> 
@@ -15,9 +15,8 @@ int DecodeConfigFile()
 
 int main()
 {
-	KikitestServiceFactory fac;
 	int port = DecodeConfigFile();
-	kikilib::EventMaster evMaster(&fac);
+	kikilib::EventMaster<KikitestService> evMaster;
 	evMaster.Loop(1, port);
 	return 0;
 }

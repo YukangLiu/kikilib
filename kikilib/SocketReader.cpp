@@ -7,6 +7,18 @@
 
 using namespace kikilib;
 
+SocketReader::SocketReader(Socket& sock)
+	: _sock(sock), _leftBorder(0), _rightBorder(0)
+{
+	_buffer.resize(Parameter::bufferInitLen);
+}
+
+SocketReader::SocketReader(Socket&& sock)
+	: _sock(sock), _leftBorder(0), _rightBorder(0)
+{
+	_buffer.resize(Parameter::bufferInitLen);
+}
+
 bool SocketReader::IsEmptyAfterRead()
 {
 	if (_rightBorder == _leftBorder)

@@ -18,11 +18,8 @@ namespace kikilib
 	class SocketReader
 	{
 	public:
-		SocketReader(Socket sock)
-			: _sock(sock), _leftBorder(0), _rightBorder(0)
-		{
-			_buffer.resize(Parameter::bufferInitLen);
-		}
+		SocketReader(Socket& sock);
+		SocketReader(Socket&& sock);
 
 		~SocketReader() {};
 

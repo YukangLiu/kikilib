@@ -3,7 +3,11 @@
 
 using namespace kikilib;
 
-TimerEventService::TimerEventService(Timer* timer, Socket sock, EventManager* evMgr)
+TimerEventService::TimerEventService(Timer* timer, Socket& sock, EventManager* evMgr)
+	: EventService(sock, evMgr), _pTimer(timer)
+{ }
+
+TimerEventService::TimerEventService(Timer* timer, Socket&& sock, EventManager* evMgr)
 	: EventService(sock, evMgr), _pTimer(timer)
 { }
 

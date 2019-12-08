@@ -8,7 +8,12 @@
 
 using namespace kikilib;
 
-EventService::EventService(Socket sock, EventManager* evMgr, int interestEvent)
+EventService::EventService(Socket& sock, EventManager* evMgr, int interestEvent)
+	: _interestEvent(interestEvent), _eventState(0), _eventPriority(NORMAL_EVENT),
+	_isConnected(true), _sock(sock), _pMyEvMgr(evMgr), _bufWritter(sock, this), _bufReader(sock)
+{}
+
+EventService::EventService(Socket&& sock, EventManager* evMgr, int interestEvent)
 	: _interestEvent(interestEvent), _eventState(0), _eventPriority(NORMAL_EVENT),
 	_isConnected(true), _sock(sock), _pMyEvMgr(evMgr), _bufWritter(sock, this), _bufReader(sock)
 {}

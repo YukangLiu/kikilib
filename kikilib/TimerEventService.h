@@ -12,7 +12,8 @@ namespace kikilib
 	class TimerEventService : public EventService
 	{
 	public:
-		TimerEventService(Timer* timer, Socket sock, EventManager* evMgr);
+		TimerEventService(Timer* timer, Socket& sock, EventManager* evMgr);
+		TimerEventService(Timer* timer, Socket&& sock, EventManager* evMgr);
 
 		~TimerEventService() {}
 
