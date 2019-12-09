@@ -31,113 +31,28 @@ namespace kikilib
 	class EventMaster
 	{
 	public:
-		EventMaster()
-			: _stop(false)
-		{
-			StartLogMgr(Parameter::logName);
-			if (_listener.IsUseful())
-			{
-				_listener.SetTcpNoDelay(Parameter::isNoDelay);
-				_listener.SetReuseAddr(true);
-				_listener.SetReusePort(true);
-				_listener.SetBlockSocket();
-			}
-			_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
-			_pThreadPool = new ThreadPool();
-		}
+		EventMaster();
 
-		~EventMaster()
-		{
-			Stop();
-			if (_pThreadPool)
-			{
-				delete _pThreadPool;
-			}
-			if (_storedFd >= 0)
-			{
-				::close(_storedFd);
-			}
-			EndLogMgr();
-		}
+		~EventMaster();
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventMaster);
 
-		//创建多个EventManager线程然后循环accept
+		//创建多个EventManager线程
 		//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
 		//listenPort : 要在哪个端口上循环listen
-		void Loop(int mgrCnt, int listenPort)
-		{
-			if (!_listener.IsUseful())
-			{
-				RecordLog("listener unuseful!");
-				return;
-			}
+		bool Init(int mgrCnt, int listenPort);
 
-			if (_storedFd < 0)
-			{
-				RecordLog("_storedFd unuseful!");
-				return;
-			}
+		//设置EventManager区域唯一的上下文内容
+		//idx为要设置几号EventManager的上下文内容
+		//ctx为要设置的EventManager上下文内容
+		//需求来源，考虑如下场景：
+		//每个EventManager中所有的事件需要共享一个LRU缓冲区的时候而这个LRU队列
+		//又是属于每个EventManager而非全局的，那么就需要设置这个上下文指针了。
+		//EventManager不负责管理该对象的生命，默认为nullptr
+		bool SetEvMgrCtx(int idx, void* ctx);
 
-			if (_listener.Bind(listenPort) < 0)
-			{
-				return;
-			}
-			_listener.Listen();
-
-			_mgrSelector.SetManagerCnt(mgrCnt);
-
-			for (int i = 0; i < mgrCnt; ++i)
-			{
-				_evMgrs.emplace_back(std::move(new EventManager(i, _pThreadPool)));
-				if (!_evMgrs.back()->Loop())
-				{
-					return;
-					RecordLog("eventManager loop failed!");
-				}
-			}
-
-			//一直accept，因为只有一个线程在accept，所以没有惊群问题
-			while (!_stop)
-			{
-				Socket conn(_listener.Accept());
-				if (!conn.IsUseful())
-				{
-					//if (errno == EMFILE)
-					//{
-					//	::close(_storedFd);
-					//	_storedFd = ::accept(_listener.fd(), NULL, NULL);
-					//	::close(_storedFd);
-					//	_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
-					//}
-
-					//if (_storedFd < 0)
-					//{
-					//	RecordLog("_storedFd unuseful after give a new connection!");
-					//	break;
-					//}
-					continue;
-				}
-				conn.SetTcpNoDelay(Parameter::isNoDelay);
-				RecordLog("accept a new usr ,ip : " + conn.GetIp());
-				int nextMgrIdx = _mgrSelector.Next();
-				EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
-				if (ev)
-				{
-					_evMgrs[nextMgrIdx]->Insert(ev);
-				}
-				else
-				{
-					RecordLog("create an eventservice failed!");
-				}
-			}
-
-			//关闭所有evMgr中的服务
-			for (auto evMgr : _evMgrs)
-			{
-				delete evMgr;
-			}
-		}
+		//循环accept
+		void Loop();
 
 		void Stop() { _stop = true; }
 
@@ -165,5 +80,137 @@ namespace kikilib
 		int _storedFd;
 	};
 
+	template<class ConcreteEventService>
+	inline EventMaster<ConcreteEventService>::EventMaster()
+		: _stop(true)
+	{
+		StartLogMgr(Parameter::logName);
+		_pThreadPool = new ThreadPool();
+	}
 
+	template<class ConcreteEventService>
+	inline EventMaster<ConcreteEventService>::~EventMaster()
+	{
+		Stop();
+		if (_pThreadPool)
+		{
+			delete _pThreadPool;
+		}
+		if (_storedFd >= 0)
+		{
+			::close(_storedFd);
+		}
+		EndLogMgr();
+	}
+
+	//创建多个EventManager线程
+	//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
+	//listenPort : 要在哪个端口上循环listen
+	template<class ConcreteEventService>
+	inline bool EventMaster<ConcreteEventService>::Init(int mgrCnt, int listenPort)
+	{
+		//初始化监听套接字
+		if (_listener.IsUseful())
+		{
+			_listener.SetTcpNoDelay(Parameter::isNoDelay);
+			_listener.SetReuseAddr(true);
+			_listener.SetReusePort(true);
+			_listener.SetBlockSocket();
+			if (_listener.Bind(listenPort) < 0)
+			{
+				return false;
+			}
+			_listener.Listen();
+		}
+		else
+		{
+			RecordLog("listener unuseful!");
+			return false;
+		}
+
+		//初始化保存的fd
+		_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
+		if (_storedFd < 0)
+		{
+			RecordLog("_storedFd unuseful!");
+			return false;
+		}
+
+		//初始化负载均衡器
+		_mgrSelector.SetManagerCnt(mgrCnt);
+
+		//初始化EventManager
+		for (int i = 0; i < mgrCnt; ++i)
+		{
+			_evMgrs.emplace_back(std::move(new EventManager(i, _pThreadPool)));
+			if (!_evMgrs.back()->Loop())
+			{
+				return false;
+				RecordLog("eventManager loop failed!");
+			}
+		}
+
+		_stop = false;
+		return true;
+	}
+
+	//设置EventManager区域唯一的上下文内容
+	//idx为要设置几号EventManager的上下文内容
+	//ctx为要设置的EventManager上下文内容
+	template<class ConcreteEventService>
+	inline bool EventMaster<ConcreteEventService>::SetEvMgrCtx(int idx, void* ctx)
+	{
+		if (idx >= _evMgrs.size() || idx < 0)
+		{
+			return false;
+		}
+		_evMgrs[idx]->SetEvMgrCtx(ctx);
+		return true;
+	}
+
+	//循环accept
+	template<class ConcreteEventService>
+	inline void EventMaster<ConcreteEventService>::Loop()
+	{
+		//一直accept，因为只有一个线程在accept，所以没有惊群问题
+		while (!_stop)
+		{
+			Socket conn(_listener.Accept());
+			if (!conn.IsUseful())
+			{
+				//if (errno == EMFILE)
+				//{
+				//	::close(_storedFd);
+				//	_storedFd = ::accept(_listener.fd(), NULL, NULL);
+				//	::close(_storedFd);
+				//	_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
+				//}
+
+				//if (_storedFd < 0)
+				//{
+				//	RecordLog("_storedFd unuseful after give a new connection!");
+				//	break;
+				//}
+				continue;
+			}
+			conn.SetTcpNoDelay(Parameter::isNoDelay);
+			RecordLog("accept a new usr ,ip : " + conn.GetIp());
+			int nextMgrIdx = _mgrSelector.Next();
+			EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
+			if (ev)
+			{
+				_evMgrs[nextMgrIdx]->Insert(ev);
+			}
+			else
+			{
+				RecordLog("create an eventservice failed!");
+			}
+		}
+
+		//关闭所有evMgr中的服务
+		for (auto evMgr : _evMgrs)
+		{
+			delete evMgr;
+		}
+	}
 }

@@ -81,6 +81,16 @@ namespace kikilib
 		//   然后设置定时器事件，过time时间后检查是否读完
         void RunInThreadPool(std::function<void()>&& func);
 
+		//设置EventManager区域唯一的上下文内容
+		//考虑如下场景：
+		//每个EventManager中所有的事件需要共享一个LRU缓冲区的时候而这个LRU队列
+		//又是属于每个EventManager而非全局的，那么就需要设置这个上下文指针了。
+		//EventManager不负责管理该对象的生命，默认为nullptr
+		void SetEvMgrCtx(void* ctx);
+
+		//获得EventManager区域唯一的上下文内容
+		void* GetEvMgrCtx();
+
 	private:
 		//当前manager的索引号，有些场景需要某个manager专门处理某种事件
 		const int _idx;
@@ -109,6 +119,9 @@ namespace kikilib
 		//保证_removedEv事件列表的线程安全
 		std::mutex _removedEvMutex;
 
+		//保证设置上下文指针的线程安全
+		std::mutex _ctxMutex;
+
 		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正delete
 		std::vector<EventService*> _removedEv;
 
@@ -127,6 +140,12 @@ namespace kikilib
 		//事件集合
 		std::set<EventService*> _eventSet;
 
+		//EventManager区域唯一的上下文内容
+		//考虑如下场景：
+		//每个EventManager中所有的事件需要共享一个LRU缓冲区的时候而这个LRU队列
+		//又是属于每个EventManager而非全局的，那么就需要设置这个上下文指针了。
+		//EventManager不负责管理该对象的生命，默认为nullptr
+		void* _pCtx;
 	};
 
 }

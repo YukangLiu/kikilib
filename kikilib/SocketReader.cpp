@@ -35,8 +35,7 @@ bool SocketReader::IsEmptyAfterRead()
 //读取一个int，若缓存中没有，则返回false
 bool SocketReader::ReadInt32(int& res)
 {
-	std::string tmpStr;
-	size_t newLeft = _leftBorder;
+	size_t newLeft = _leftBorder, numSize = 0;
 	bool isPositive = true;
 	if (newLeft < _rightBorder && (_buffer[newLeft] == '+' || _buffer[newLeft] == '-'))
 	{//检测符号，有符号要跳一步
@@ -44,17 +43,17 @@ bool SocketReader::ReadInt32(int& res)
 		++newLeft;
 	}
 
-	for (; newLeft < _rightBorder && _buffer[newLeft] >= '0' && _buffer[newLeft] <= '9'; ++newLeft)
+	while(newLeft < _rightBorder && _buffer[newLeft + numSize] >= '0' && _buffer[newLeft + numSize] <= '9')
 	{
-		tmpStr += _buffer[newLeft];
+		++numSize;
 	}
 
-	if (newLeft == _rightBorder)
-	{//说明读完了都还没到字符串，下次read很有可能还有数字，需要等待一串数字接收完才能成功返回
+	if (numSize == 0 || newLeft == _rightBorder)
+	{//说明没数字或者读完了都还没到字符串，下次read很有可能还有数字，需要等待一串数字接收完才能成功返回
 		return false;
 	}
-	_leftBorder = newLeft;
-	res = atoi(tmpStr.c_str());
+	_leftBorder = newLeft + numSize;
+	res = std::strtol(&_buffer[newLeft],nullptr,10);
 	if (!isPositive)
 	{
 		res = -res;
@@ -91,6 +90,31 @@ std::string SocketReader::Read(size_t len)
 	}
 	//读取之后还是没有足够的数据
 	return std::string("");
+}
+
+//读取长度为len的数据，若没有长度为len的数据，则返回false
+bool SocketReader::Read(char* buf, size_t len)
+{
+	//buffer中已经有足够的数据了
+	if (_rightBorder - _leftBorder >= len)
+	{
+		memcpy(buf,&_buffer[_leftBorder],len);
+		_leftBorder += len;
+		return true;
+	}
+	if (_buffer.size() - _leftBorder < len)
+	{//buffer空间不足以接收长度len的数据，扩展到刚刚可以
+		_buffer.resize(len + _leftBorder);
+	}
+	ReadFillBuf();
+	if (_rightBorder - _leftBorder >= len)
+	{//读取之后有足够的数据了
+		memcpy(buf, &_buffer[_leftBorder], len);
+		_leftBorder += len;
+		return true;
+	}
+	//读取之后还是没有足够的数据
+	return false;
 }
 
 //尝试读取能填满缓冲区的数据,若缓冲区已经满了，会先扩充Parameter::bufExpandRatio倍大小

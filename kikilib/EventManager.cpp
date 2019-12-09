@@ -13,7 +13,7 @@
 using namespace kikilib;
 
 EventManager::EventManager(int idx, ThreadPool* threadPool) 
-	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr)
+	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr), _pCtx(nullptr)
 { }
 
 EventManager::~EventManager()
@@ -240,7 +240,7 @@ void EventManager::RunAfter(Time time, std::function<void()>& timerCb)
 //time时间后执行timerCb函数
 void EventManager::RunEvery(Time time, std::function<void()> timerCb)
 {
-	//这里lamda表达式不加括号会立刻执行，待测试
+	//这里lamda表达式不加括号会立刻执行
 	std::function<void()> realTimerCb(
 		[this, time, timerCb]
 		{
@@ -292,4 +292,17 @@ void EventManager::RunExpired()
 void EventManager::RunInThreadPool(std::function<void()>&& func)
 {
     _pThreadPool->enqueue(std::move(func));
+}
+
+//设置EventManager区域唯一的上下文内容
+void EventManager::SetEvMgrCtx(void* ctx)
+{
+	std::lock_guard<std::mutex> lock(_ctxMutex);
+	_pCtx = ctx;
+}
+
+//设置EventManager区域唯一的上下文内容
+void* EventManager::GetEvMgrCtx() 
+{
+	return _pCtx; 
 }

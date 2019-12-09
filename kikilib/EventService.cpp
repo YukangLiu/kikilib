@@ -58,6 +58,12 @@ void EventService::Motify(EventService* ev)
 	_pMyEvMgr->Motify(ev);
 }
 
+//获得EventManager区域唯一的上下文内容
+void* EventService::GetEvMgrCtx()
+{
+	return _pMyEvMgr->GetEvMgrCtx();
+}
+
 //根据事件类型处理事件
 void EventService::HandleEvent()
 {
@@ -126,6 +132,12 @@ std::string EventService::ReadBuf(size_t len)
 	return _bufReader.Read(len);
 }
 
+//读取长度为len的数据，若没有长度为len的数据，则返回false
+bool EventService::ReadBuf(char* buf, size_t len)
+{
+	return _bufReader.Read(buf, len);
+}
+
 std::string EventService::ReadAll()
 {
 	return _bufReader.ReadAll();
@@ -172,13 +184,33 @@ void EventService::RunAfter(Time time, std::function<void()>& timerCb)
 }
 
 //每过time时间执行timerCb函数
-void EventService::RunEvery(Time time, std::function<void()> timerCb) 
-{ 
-	_pMyEvMgr->RunEvery(time, timerCb); 
+void EventService::RunEvery(Time time, std::function<void()>&& timerCb)
+{
+	_pMyEvMgr->RunEvery(time, timerCb);
+}
+
+void EventService::RunEvery(Time time, std::function<void()>& timerCb)
+{
+	_pMyEvMgr->RunEvery(time, timerCb);
 }
 
 //每过time时间执行一次timerCb函数,直到isContinue函数返回false
-void EventService::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+void EventService::RunEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue)
+{
+	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
+}
+
+void EventService::RunEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue)
+{
+	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
+}
+
+void EventService::RunEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue)
+{
+	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
+}
+
+void EventService::RunEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue)
 {
 	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
 }

@@ -37,6 +37,9 @@ namespace kikilib
 		//读取长度为len的数据，若没有长度为len的数据，则返回空串
 		std::string Read(size_t len);
 
+		//读取长度为len的数据，若没有长度为len的数据，则返回false
+		bool Read(char* buf, size_t len);
+
 		//读一行，该行以\r\n结尾,若没有，返回空串
 		std::string ReadLineEndOfRN();
 
