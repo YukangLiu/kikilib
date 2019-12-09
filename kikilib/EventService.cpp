@@ -40,6 +40,24 @@ void EventService::SetInteresEv(int newInterestEv)
 	_pMyEvMgr->Motify(this);
 }
 
+//向事件管理器中插入一个事件,这是线程安全的
+void EventService::Insert(EventService* ev)
+{
+	_pMyEvMgr->Insert(ev);
+}
+
+//向事件管理器中移除一个事件,这是线程安全的
+void EventService::Remove(EventService* ev)
+{
+	_pMyEvMgr->Remove(ev);
+}
+
+//向事件管理器中修改一个事件服务所关注的事件类型,这是线程安全的
+void EventService::Motify(EventService* ev)
+{
+	_pMyEvMgr->Motify(ev);
+}
+
 //根据事件类型处理事件
 void EventService::HandleEvent()
 {
@@ -131,10 +149,26 @@ std::string EventService::ReadLineEndOfN()
 	return _bufReader.ReadLineEndOfN();
 }
 
+void EventService::RunAt(Time time, std::function<void()>&& timerCb)
+{
+	_pMyEvMgr->RunAt(time, std::move(timerCb));
+}
+
+void EventService::RunAt(Time time, std::function<void()>& timerCb)
+{
+	_pMyEvMgr->RunAt(time, timerCb);
+}
+
 //time时间后执行timerCb函数
 void EventService::RunAfter(Time time, std::function<void()>&& timerCb)
 { 
 	_pMyEvMgr->RunAfter(time, std::move(timerCb));
+}
+
+//time时间后执行timerCb函数
+void EventService::RunAfter(Time time, std::function<void()>& timerCb)
+{
+	_pMyEvMgr->RunAfter(time, timerCb);
 }
 
 //每过time时间执行timerCb函数
@@ -147,6 +181,12 @@ void EventService::RunEvery(Time time, std::function<void()> timerCb)
 void EventService::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
 {
 	_pMyEvMgr->RunEveryUntil(time, timerCb, isContinue);
+}
+
+//运行所有已经超时的需要执行的函数
+void EventService::RunExpired()
+{
+	_pMyEvMgr->RunExpired();
 }
 
 //将任务放在线程池中以达到异步执行的效果

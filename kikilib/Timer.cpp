@@ -7,12 +7,12 @@
 
 using namespace kikilib;
 
-void Timer::RunExpired()
+void Timer::GetExpiredTask(std::vector<std::function<void()>>& tasks)
 {
 	Time nowTime = Time::now();
 	for(auto it = _timerCbMap.begin(); it != _timerCbMap.end() && it->first <= nowTime; it = _timerCbMap.begin())
 	{
-		(it->second)();
+		tasks.emplace_back(std::move(it->second));
 		_timerCbMap.erase(it);
 	}
 	

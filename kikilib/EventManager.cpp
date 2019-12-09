@@ -58,7 +58,7 @@ bool EventManager::Loop()
 	}
 	Socket timeSock(timeFd);
 	_pTimer = new Timer(timeSock);
-	EventService* pTimerServe = new TimerEventService(_pTimer, timeSock, this);
+	EventService* pTimerServe = new TimerEventService(timeSock, this);
 	//设置定时器事件为优先级最高的事件
 	pTimerServe->SetEventPriority(IMMEDIATE_EVENT);
 
@@ -130,11 +130,27 @@ void EventManager::Insert(EventService* ev)
 	{
 		return;
 	}
-	{
-		std::lock_guard<std::mutex> lock(_eventSetMutex);
-		_eventSet.insert(ev);
+
+	if (ev->IsConnected())
+	{//insert意味着连接事件的触发
+		ev->HandleConnectionEvent();
 	}
-	_epoller.AddEv(ev);
+	else
+	{
+		return;
+	}
+	
+	if (ev->IsConnected())
+	{
+
+		{
+			std::lock_guard<std::mutex> lock(_eventSetMutex);
+			_eventSet.insert(ev);
+		}
+
+		_epoller.AddEv(ev);
+	}
+	
 }
 
 //向事件管理器中移除一个事件
@@ -167,16 +183,36 @@ void EventManager::Motify(EventService* ev)
 	{
 		return;
 	}
+	bool isNewEv = false;
 
 	{
 		std::lock_guard<std::mutex> lock(_eventSetMutex);
 		if (_eventSet.find(ev) == _eventSet.end())
 		{
-			Insert(ev);
-			return;
+			isNewEv = true;
 		}
 	}
-	_epoller.MotifyEv(ev);
+
+	if (isNewEv)
+	{
+		Insert(ev);
+	}
+	else
+	{
+		_epoller.MotifyEv(ev);
+	}
+}
+
+void EventManager::RunAt(Time time, std::function<void()>&& timerCb)
+{
+	std::lock_guard<std::mutex> lock(_timerMutex);
+	_pTimer->RunAt(time, std::move(timerCb));
+}
+
+void EventManager::RunAt(Time time, std::function<void()>& timerCb)
+{
+	std::lock_guard<std::mutex> lock(_timerMutex);
+	_pTimer->RunAt(time, timerCb);
 }
 
 //time时间后执行timerCb函数
@@ -234,8 +270,26 @@ void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::
 	RunAfter(time, std::move(realTimerCb));
 }
 
+//运行所有已经超时的需要执行的函数
+void EventManager::RunExpired()
+{
+	std::lock_guard<std::mutex> lock(_timerQueMutex);
+
+	{
+		std::lock_guard<std::mutex> lock(_timerMutex);
+		_pTimer->GetExpiredTask(_actTimerTasks);
+	}
+	
+	for (auto& task : _actTimerTasks)
+	{
+		task();
+	}
+
+	_actTimerTasks.clear();
+}
+
 //将任务放在线程池中以达到异步执行的效果
 void EventManager::RunInThreadPool(std::function<void()>&& func)
 {
-    return _pThreadPool->enqueue(std::move(func));
+    _pThreadPool->enqueue(std::move(func));
 }

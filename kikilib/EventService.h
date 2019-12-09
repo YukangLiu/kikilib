@@ -66,16 +66,37 @@ namespace kikilib
 		//修改当前事件的优先级
 		void SetEventPriority(unsigned priority) { _eventPriority = priority; };
 
+		/////////////////////////////////事件管理的操作API///////////////////////////////////
+
+		//向事件管理器中插入一个事件,这是线程安全的
+		void Insert(EventService* ev);
+
+		//向事件管理器中移除一个事件,这是线程安全的
+		void Remove(EventService* ev);
+
+		//向事件管理器中修改一个事件服务所关注的事件类型,这是线程安全的
+		void Motify(EventService* ev);
+
 		///////////////////////////////定时器相关的操作API///////////////////////////////////
+
+		//需要注意，如果timerCb里面会执行RunExpired()函数的话会发生死锁
+
+		//在time时刻执行timerCb函数
+		void RunAt(Time time, std::function<void()>&& timerCb);
+		void RunAt(Time time, std::function<void()>& timerCb);
 
 		//time时间后执行timerCb函数
 		void RunAfter(Time time, std::function<void()>&& timerCb);
+		void RunAfter(Time time, std::function<void()>& timerCb);
 
 		//每过time时间执行timerCb函数
 		void RunEvery(Time time, std::function<void()> timerCb);
 
 		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
 		void RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue);
+
+		//运行所有已经超时的需要执行的函数
+		void RunExpired();
 
 		///////////////////////////////线程池相关的操作API///////////////////////////////////
 

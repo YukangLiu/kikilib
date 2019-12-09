@@ -3,16 +3,16 @@
 
 using namespace kikilib;
 
-TimerEventService::TimerEventService(Timer* timer, Socket& sock, EventManager* evMgr)
-	: EventService(sock, evMgr), _pTimer(timer)
+TimerEventService::TimerEventService(Socket& sock, EventManager* evMgr)
+	: EventService(sock, evMgr)
 { }
 
-TimerEventService::TimerEventService(Timer* timer, Socket&& sock, EventManager* evMgr)
-	: EventService(sock, evMgr), _pTimer(timer)
+TimerEventService::TimerEventService(Socket&& sock, EventManager* evMgr)
+	: EventService(std::move(sock), evMgr)
 { }
 
 void TimerEventService::HandleReadEvent()
 {
 	ReadAll();
-	_pTimer->RunExpired();
+	RunExpired();
 }

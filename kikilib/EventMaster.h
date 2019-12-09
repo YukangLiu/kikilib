@@ -124,11 +124,11 @@ namespace kikilib
 				EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
 				if (ev)
 				{
-					ev->HandleConnectionEvent();
-					if (ev->IsConnected())
-					{
-						_evMgrs[nextMgrIdx]->Insert(ev);
-					}
+					_evMgrs[nextMgrIdx]->Insert(ev);
+				}
+				else
+				{
+					RecordLog("create an eventservice failed!");
 				}
 			}
 

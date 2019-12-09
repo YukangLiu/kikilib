@@ -5,6 +5,7 @@
 #include "utils.h"
 
 #include <map>
+#include <vector>
 #include <mutex>
 #include <functional>
 
@@ -24,8 +25,8 @@ namespace kikilib
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(Timer);
 
-		//运行所有已经超时的需要执行的函数
-		void RunExpired();
+		//获取所有已经超时的需要执行的函数
+		void GetExpiredTask(std::vector<std::function<void()>> &tasks);
 
 		//在time时刻需要执行函数cb
 		void RunAt(Time time, std::function<void()>& cb);

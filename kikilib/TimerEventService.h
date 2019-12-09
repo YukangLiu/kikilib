@@ -12,17 +12,14 @@ namespace kikilib
 	class TimerEventService : public EventService
 	{
 	public:
-		TimerEventService(Timer* timer, Socket& sock, EventManager* evMgr);
-		TimerEventService(Timer* timer, Socket&& sock, EventManager* evMgr);
+		TimerEventService(Socket& sock, EventManager* evMgr);
+		TimerEventService(Socket&& sock, EventManager* evMgr);
 
 		~TimerEventService() {}
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(TimerEventService);
 
 		void HandleReadEvent();
-
-	private:
-		Timer* _pTimer;
 
 	};
 

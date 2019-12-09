@@ -56,8 +56,13 @@ namespace kikilib
 		//向事件管理器中修改一个事件服务所关注的事件类型,这是线程安全的
 		void Motify(EventService* ev);
 
-		//time时间后执行timerCb函数
+		//需要注意，如果timerCb里面会执行RunExpired()函数的话会发生死锁
+		//在time时刻执行timerCb函数
 		//一个time就八个字节，搞引用相当于一个指针还是分配了八个字节（x64），所以time不搞&和&&
+		void RunAt(Time time, std::function<void()>&& timerCb);
+		void RunAt(Time time, std::function<void()>& timerCb);
+
+		//time时间后执行timerCb函数
 		void RunAfter(Time time, std::function<void()>&& timerCb);
 		void RunAfter(Time time, std::function<void()>& timerCb);
 
@@ -67,7 +72,13 @@ namespace kikilib
 		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
 		void RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue);
 
-		//将任务放在线程池中以达到异步执行的效果
+		//运行所有已经超时的需要执行的函数
+		void RunExpired();
+
+		//将任务函数放在线程池中以达到异步执行的效果，如：
+		//1、向数据库写数据，直接将写数据库的函数放入其中
+		//2、从数据库读数据，将读取数据库的函数放入其中，
+		//   然后设置定时器事件，过time时间后检查是否读完
         void RunInThreadPool(std::function<void()>&& func);
 
 	private:
@@ -92,7 +103,10 @@ namespace kikilib
 		//保证timer线程安全
 		std::mutex _timerMutex;
 
-		//保证移除事件时的线程安全
+		//保证_actTimerTasks使用的线程安全
+		std::mutex _timerQueMutex;
+
+		//保证_removedEv事件列表的线程安全
 		std::mutex _removedEvMutex;
 
 		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正delete
@@ -100,6 +114,9 @@ namespace kikilib
 
 		//EventEpoller发现的活跃事件所放的列表
 		std::vector<EventService*> _actEvServs;
+
+		//Timer发现的超时事件所放的列表
+		std::vector<std::function<void()>> _actTimerTasks;
 
 		//活跃事件按照优先级所放的列表
 		std::vector<EventService*> _priorityEvQue[EVENT_PRIORITY_TYPE_COUNT];
