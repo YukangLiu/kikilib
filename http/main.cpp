@@ -5,6 +5,7 @@
 int main()
 {
 	kikilib::EventMaster<StaticHttpService> evMaster;
-	evMaster.Loop(4,80);
+	evMaster.Init(4,80);
+	evMaster.Loop();
 	return 0;
 }

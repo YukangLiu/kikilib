@@ -20,6 +20,7 @@ int main()
 	std::string ip;
 	int port = DecodeConfigFile();
 	kikilib::EventMaster<ChatRoomService> evMaster;
-	evMaster.Loop(1,port);
+	evMaster.Init(1,port);
+	evMaster.Loop();
 	return 0;
 }
