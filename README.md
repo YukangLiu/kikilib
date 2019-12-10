@@ -3,7 +3,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
 <br>
 1、定位：<br>
-	kikilib网络库是一个专用于Linux的面向对象的c++轻量级高性能网络库。而非传统的面向回调函数和上下文指针的网络库。<br>
+	kikilib网络库是轻量，高性能，纯c++11，更符合OOP语言特点且易用的一个Linux服务器网络库。而非传统的面向回调函数和上下文指针的网络库。<br>
 <br>
 <br>
 2、概述：<br>
@@ -52,3 +52,6 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	10000 clients, running 600 sec.<br>
 	Speed=1338931 pages/min, -568964 bytes/sec.<br>
 	Requests: 13389316 susceed, 0 failed.<br>
+<br>
+<br>
+附：有什么需求或者bug，建议，问题，都可以加我微信liuyukang315讨论交流，谢谢。<br>
