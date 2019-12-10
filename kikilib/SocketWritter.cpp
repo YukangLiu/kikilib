@@ -74,7 +74,8 @@ void SocketWtitter::WriteBufToSock()
 {
 	int curLen = _rightBorder - _leftBorder;
 	if (!curLen)
-	{//没有东西写
+	{//没有东西写了，取消关注读事件了
+		_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() ^ EPOLLOUT);
 		return;
 	}
 	int ret = static_cast<int>(_sock.Send(&(_buffer[_leftBorder]), curLen));
@@ -84,7 +85,7 @@ void SocketWtitter::WriteBufToSock()
 		return;
 	}
 	else if (ret < curLen)
-	{//没写完f
+	{//没写完
 		_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() | EPOLLOUT);
 	}
 	_leftBorder += ret;
