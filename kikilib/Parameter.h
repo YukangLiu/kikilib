@@ -28,6 +28,9 @@ namespace kikilib
 		//监听队列的长度
 		constexpr static unsigned backLog = 1024;
 
+		//最大接收的连接数(也即服务器中存在的EventService对象数)，需要设置linux系统的fd上限大于该值
+		constexpr static int maxEventServiceCnt = 600000;
+
 		//Socket默认是否开启TCP_NoDelay
 		constexpr static bool isNoDelay = true;
 

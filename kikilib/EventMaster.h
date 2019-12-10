@@ -2,15 +2,15 @@
 #pragma once
 
 #include "Socket.h"
-#include "ManagerSelector.h"
-#include "utils.h"
-#include "EventMaster.h"
-#include "EventService.h"
-#include "LogManager.h"
-#include "Parameter.h"
-#include "EventManager.h"
 #include "EventServiceFactory.h"
+#include "ManagerSelector.h"
+#include "EventManager.h"
+
 #include "ThreadPool.h"
+#include "LogManager.h"
+
+#include "utils.h"
+#include "Parameter.h"
 
 #include <fcntl.h>
 #include <vector>
@@ -18,6 +18,8 @@
 
 namespace kikilib
 {
+	class EventService;
+
 	//事件主宰者
 	//职责：
 	//1、创建管理所有的事件管理器
@@ -76,8 +78,6 @@ namespace kikilib
 
 		//事件管理器列表
 		std::vector<EventManager*> _evMgrs;
-
-		int _storedFd;
 	};
 
 	template<class ConcreteEventService>
@@ -95,10 +95,6 @@ namespace kikilib
 		if (_pThreadPool)
 		{
 			delete _pThreadPool;
-		}
-		if (_storedFd >= 0)
-		{
-			::close(_storedFd);
 		}
 		EndLogMgr();
 	}
@@ -125,14 +121,6 @@ namespace kikilib
 		else
 		{
 			RecordLog("listener unuseful!");
-			return false;
-		}
-
-		//初始化保存的fd
-		_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
-		if (_storedFd < 0)
-		{
-			RecordLog("_storedFd unuseful!");
 			return false;
 		}
 
@@ -176,23 +164,11 @@ namespace kikilib
 		while (!_stop)
 		{
 			Socket conn(_listener.Accept());
-			if (!conn.IsUseful())
+			if (!conn.IsUseful() || conn.fd() > Parameter::maxEventServiceCnt)
 			{
-				//if (errno == EMFILE)
-				//{
-				//	::close(_storedFd);
-				//	_storedFd = ::accept(_listener.fd(), NULL, NULL);
-				//	::close(_storedFd);
-				//	_storedFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
-				//}
-
-				//if (_storedFd < 0)
-				//{
-				//	RecordLog("_storedFd unuseful after give a new connection!");
-				//	break;
-				//}
 				continue;
 			}
+
 			conn.SetTcpNoDelay(Parameter::isNoDelay);
 			RecordLog("accept a new usr ,ip : " + conn.GetIp());
 			int nextMgrIdx = _mgrSelector.Next();

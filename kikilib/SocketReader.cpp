@@ -35,29 +35,15 @@ bool SocketReader::IsEmptyAfterRead()
 //读取一个int，若缓存中没有，则返回false
 bool SocketReader::ReadInt32(int& res)
 {
-	size_t newLeft = _leftBorder, numSize = 0;
-	bool isPositive = true;
-	if (newLeft < _rightBorder && (_buffer[newLeft] == '+' || _buffer[newLeft] == '-'))
-	{//检测符号，有符号要跳一步
-		isPositive = (_buffer[newLeft] == '+');
-		++newLeft;
-	}
-
-	while(newLeft < _rightBorder && _buffer[newLeft + numSize] >= '0' && _buffer[newLeft + numSize] <= '9')
+	size_t numSize = 0;
+	char* numEnd = &_buffer[_leftBorder];
+	res = std::strtol(&_buffer[_leftBorder], &numEnd,10);
+	numSize = numEnd - &_buffer[_leftBorder];
+	if (!numSize)
 	{
-		++numSize;
-	}
-
-	if (numSize == 0 || newLeft == _rightBorder)
-	{//说明没数字或者读完了都还没到字符串，下次read很有可能还有数字，需要等待一串数字接收完才能成功返回
 		return false;
 	}
-	_leftBorder = newLeft + numSize;
-	res = std::strtol(&_buffer[newLeft],nullptr,10);
-	if (!isPositive)
-	{
-		res = -res;
-	}
+	_leftBorder += numSize;
 	return true;
 }
 
