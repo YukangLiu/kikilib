@@ -39,7 +39,7 @@ bool SocketReader::ReadInt32(int& res)
 	char* numEnd = &_buffer[_leftBorder];
 	res = std::strtol(&_buffer[_leftBorder], &numEnd,10);
 	numSize = numEnd - &_buffer[_leftBorder];
-	if (!numSize)
+	if (!numSize || numSize > (_rightBorder - _leftBorder))
 	{
 		return false;
 	}
