@@ -11,6 +11,7 @@
 #include <condition_variable>
 #include <array>
 
+#include "Time.h"
 #include "Parameter.h"
 #include "Sequence.h"
 #include "utils.h"
@@ -84,6 +85,9 @@ namespace kikilib
 		//向磁盘写入日志
 		void WriteDownLog();
 
+		//更新日志系统的时间
+		void UpdateLogTime();
+
 	private:
 		//日志管理器实例
 		static LogManager* _logMgr;
@@ -122,6 +126,15 @@ namespace kikilib
 
 		//当前可写的槽位序号
 		AtomicSequence _writableSeq;
+
+		std::mutex _timeMutex;
+
+		std::string _logTimeStr;
+
+		time_t _logTimeSec;
+
+		//时区偏置单位为秒
+		long _timeZone;
 
 		std::array<std::string, Parameter::kLogBufferLen> _ringBuf;
 	};

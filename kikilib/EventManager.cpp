@@ -84,6 +84,8 @@ bool EventManager::Loop()
 				}
 				//获取活跃事件
 				this->_epoller.GetActEvServ(Parameter::epollTimeOutMs, this->_actEvServs);
+				//每次epoll更新一次服务器大致时间
+				//Time::UpdataRoughTime();
 				//按优先级分队
 				for (auto pEvServ : this->_actEvServs)
 				{
