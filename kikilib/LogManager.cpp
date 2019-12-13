@@ -165,7 +165,6 @@ void LogManager::WriteDownLog()
 			//开始打印当前日志内容队列
 			while (_lastRead.load() < _lastWrote.load())
 			{
-				unsigned wroteCnt = 0;
 				while (_lastRead.load() < _lastWrote.load())
 				{
 					int64_t curRead = _lastRead.load() + 1;
@@ -186,11 +185,6 @@ void LogManager::WriteDownLog()
 					_curLogFileByte += buf.size();
 					buf.clear();
 					_lastRead.store(curRead);
-					if (wroteCnt > 5000)
-					{//强制刷新
-						fflush(_logFile);
-						wroteCnt = 0;
-					}
 				}
 				fflush(_logFile);
 			}
