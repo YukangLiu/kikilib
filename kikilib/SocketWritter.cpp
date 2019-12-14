@@ -21,19 +21,19 @@ SocketWtitter::SocketWtitter(Socket&& sock, EventService* pEvServe)
 }
 
 //写一个int
-void SocketWtitter::SendInt32(int res)
+bool SocketWtitter::SendInt32(int res)
 {
-	Send(std::move(std::to_string(res)));
+	return Send(std::move(std::to_string(res)));
 }
 
 //写一个字符串
-void SocketWtitter::Send(std::string& str)
+bool SocketWtitter::Send(std::string& str)
 {
-	Send(std::move(str));//目前操作是一样的，并没有转移指针
+	return Send(std::move(str));//目前操作是一样的，并没有转移指针
 }
 
 //写一个字符串
-void SocketWtitter::Send(std::string&& str)
+bool SocketWtitter::Send(std::string&& str)
 {
 	WriteBufToSock();
 	if (_rightBorder - _leftBorder)
@@ -50,7 +50,7 @@ void SocketWtitter::Send(std::string&& str)
 		if (ret < 0)
 		{//error
 			RecordLog(ERROR_DATA_INFORMATION, "write socket error!");
-			return;
+			return false;
 		}
 		else if (ret < static_cast<int>(str.size()))
 		{//内容没发完
@@ -64,9 +64,10 @@ void SocketWtitter::Send(std::string&& str)
 		}
 		else
 		{//一次成功发送所有内容出去
-			return;
+			return true;
 		}
 	}
+	return true;
 }
 
 //将缓冲区内容写进socket中
@@ -75,7 +76,6 @@ void SocketWtitter::WriteBufToSock()
 	int curLen = _rightBorder - _leftBorder;
 	if (!curLen)
 	{//没有东西写了，取消关注读事件了
-		_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() ^ EPOLLOUT);
 		return;
 	}
 	int ret = static_cast<int>(_sock.Send(&(_buffer[_leftBorder]), curLen));

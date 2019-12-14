@@ -106,19 +106,19 @@ void EventService::HandleWriteEvent()
 }
 
 //写一个int
-void EventService::WriteInt32(int num)
+bool EventService::WriteInt32(int num)
 {
-	_bufWritter.SendInt32(num);
+	return _bufWritter.SendInt32(num);
 }
 
-void EventService::WriteBuf(std::string& content)
+bool EventService::WriteBuf(std::string& content)
 {
-	_bufWritter.Send(content);
+	return _bufWritter.Send(content);
 }
 
-void EventService::WriteBuf(std::string&& content)
+bool EventService::WriteBuf(std::string&& content)
 {
-	_bufWritter.Send(std::move(content));
+	return _bufWritter.Send(std::move(content));
 }
 
 //读取一个int，若缓存中没有，则返回false

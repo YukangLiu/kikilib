@@ -10,14 +10,17 @@ namespace kikilib
 	namespace Parameter
 	{
 		//日志名字
-		const static std::string logName("Log.txt");
+		static const std::string logName("Log.txt");
 
 		//日志占磁盘的最大大小（Byte），大于该数会舍弃掉一个日志文件，重新开始写，防止磁盘爆满
-		const int64_t maxLogDiskByte = 1073741824; //1024 * 1024 * 1024, 1GB
+		static const int64_t maxLogDiskByte = 1073741824; //1024 * 1024 * 1024, 1GB
 
 		//日志中的ringbuffer的长度，需要是2的n次幂,一个std::string大小是40字节，加上字符串假设60字节，
 		//所以该数字*100可以认为是内存允许分给日志系统的大小，如4194304表示内存最多给日志419MB空间
-		const int64_t kLogBufferLen = 4194304;
+		static const int64_t kLogBufferLen = 4194304;
+
+		//日志是否自动添加时间戳
+		static const bool isAddTimestampInLog = false;
 
 		static_assert(((kLogBufferLen > 0) && ((kLogBufferLen& (~kLogBufferLen + 1)) == kLogBufferLen)),
 			"RingBuffer's size must be a positive power of 2");

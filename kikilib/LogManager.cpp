@@ -112,19 +112,28 @@ void LogManager::Record(std::string&& logDate)
 	const int64_t writableSeq = _writableSeq.fetch_add(1);
 	
 	//写操作
-	if (Time::nowSec() > _logTimeSec)
-	{//当前服务器的大致时间比日志系统存储的时间要大上1s时更新日志系统的时间字符串
-		UpdateLogTime();
+	if (Parameter::isAddTimestampInLog)
+	{
+		if (Time::nowSec() > _logTimeSec)
+		{//当前服务器的大致时间比日志系统存储的时间要大上1s时更新日志系统的时间字符串
+			UpdateLogTime();
+		}
+		std::string cpLogTimeStr(_logTimeStr.c_str());
+		std::string realLogData(cpLogTimeStr.size() + logDate.size() + 2, ' ');//+2是因为给时间和日志中间留一个空格，最后加一个换行符
+		//拷贝时间
+		memcpy(&(*realLogData.begin()), &(*cpLogTimeStr.begin()), cpLogTimeStr.size());
+		//拷贝日志信息
+		memcpy(&(*(realLogData.begin() + cpLogTimeStr.size() + 1)), &(*logDate.begin()), logDate.size());
+		//加上换行符
+		realLogData.back() = '\n';
+		_ringBuf[writableSeq & (Parameter::kLogBufferLen - 1)] = std::move(realLogData);
 	}
-	std::string cpLogTimeStr(_logTimeStr.c_str());
-	std::string realLogData(cpLogTimeStr.size() + logDate.size() + 2, ' ');//+2是因为给时间和日志中间留一个空格，最后加一个换行符
-	//拷贝时间
-	memcpy(&(*realLogData.begin()), &(*cpLogTimeStr.begin()), cpLogTimeStr.size());
-	//拷贝日志信息
-	memcpy(&(*(realLogData.begin() + cpLogTimeStr.size() + 1)), &(*logDate.begin()), logDate.size());
-	//加上换行符
-	realLogData.back() = '\n';
- 	_ringBuf[writableSeq & (Parameter::kLogBufferLen - 1)] = std::move(realLogData);
+	else
+	{
+		logDate += '\n';
+		_ringBuf[writableSeq & (Parameter::kLogBufferLen - 1)] = std::move(logDate);
+	}
+	
 	//volatile int a = 0;
 	while (writableSeq - 1L != _lastWrote.load())
 	{//因为写操作速度相当，所以这里一般不会阻塞,需要注意的，这个_lastWrote里面的值是volatile的，所以这里这样写才没有问题
@@ -146,10 +155,11 @@ void LogManager::UpdateLogTime()
 		_logTimeSec = Time::nowSec();
 		struct tm t;
 		Time::ToLocalTime(_logTimeSec, _timeZone, &t);
-		strftime(&(*_logTimeStr.begin()), sizeof(_logTimeStr), "%Y-%m-%d %H:%M:%S", &t);
+		std::string cp(_logTimeStr.c_str());
+		strftime(&(*cp.begin()), cp.size() + 1, "%Y-%m-%d %H:%M:%S", &t);
+		_logTimeStr = std::move(cp);
 	}
 }
-
 
 void LogManager::WriteDownLog()
 {
@@ -168,7 +178,6 @@ void LogManager::WriteDownLog()
 				while (_lastRead.load() < _lastWrote.load())
 				{
 					int64_t curRead = _lastRead.load() + 1;
-					++wroteCnt;
 					if (_curLogFileByte > kMaxPerLogFileByte)
 					{//磁盘要爆满了，舍弃旧的日志
 						fflush(_logFile);

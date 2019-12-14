@@ -104,14 +104,14 @@ void StaticHttpService::HandleErrEvent()
 
 void StaticHttpService::SendUnImpletement()
 {
-	WriteBuf("HTTP/1.0 501 Method Not Implemented\r\n");
-	WriteBuf("Server: kikihttp/0.1.0\r\n");
-	WriteBuf("Content-Type: text/html\r\n");
-	WriteBuf("\r\n");
-	WriteBuf("<HTML><TITLE>Method Not Implemented\r\n");
-	WriteBuf("</TITLE></HEAD>\r\n");
-	WriteBuf("<BODY><P>HTTP request method not supported.\r\n");
-	WriteBuf("</BODY></HTML>\r\n");
+	if(!WriteBuf("HTTP/1.0 501 Method Not Implemented\r\n")) return;
+	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
+	if(!WriteBuf("Content-Type: text/html\r\n")) return;
+	if(!WriteBuf("\r\n")) return;
+	if(!WriteBuf("<HTML><TITLE>Method Not Implemented\r\n")) return;
+	if(!WriteBuf("</TITLE></HEAD>\r\n")) return;
+	if(!WriteBuf("<BODY><P>HTTP request method not supported.\r\n")) return;
+	if(!WriteBuf("</BODY></HTML>\r\n")) return;
 }
 
 void StaticHttpService::SendFile(std::string& path)
@@ -138,24 +138,24 @@ void StaticHttpService::SendFile(std::string& path)
 
 void StaticHttpService::SendNotFount()
 {
-	WriteBuf("HTTP/1.0 404 NOT FOUND\r\n");
-	WriteBuf("Server: kikihttp/0.1.0\r\n");
-	WriteBuf("Content-Type: text/html\r\n");
-	WriteBuf("\r\n");
-	WriteBuf("<HTML><TITLE>Not Found</TITLE>\r\n");
-	WriteBuf("<BODY><P>The server could not fulfill\r\n");
-	WriteBuf("your request because the resource specified\r\n");
-	WriteBuf("is unavailable or nonexistent.\r\n");
-	WriteBuf("</BODY></HTML>\r\n");
+	if(!WriteBuf("HTTP/1.0 404 NOT FOUND\r\n")) return;
+	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
+	if(!WriteBuf("Content-Type: text/html\r\n")) return;
+	if(!WriteBuf("\r\n")) return;
+	if(!WriteBuf("<HTML><TITLE>Not Found</TITLE>\r\n")) return;
+	if(!WriteBuf("<BODY><P>The server could not fulfill\r\n")) return;
+	if(!WriteBuf("your request because the resource specified\r\n")) return;
+	if(!WriteBuf("is unavailable or nonexistent.\r\n")) return;
+	if(!WriteBuf("</BODY></HTML>\r\n")) return;
 }
 
 void StaticHttpService::SendHeader(std::string& path)
 {
 	//path后缀可以得到文件类型，太多了，以后有空再写
-	WriteBuf("HTTP/1.0 200 OK\r\n");
-	WriteBuf("Server: kikihttp/0.1.0\r\n");
-	WriteBuf("Content-Type: text/html\r\n");
-	WriteBuf("\r\n");
+	if(!WriteBuf("HTTP/1.0 200 OK\r\n")) return;
+	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
+	if(!WriteBuf("Content-Type: text/html\r\n")) return;
+	if(!WriteBuf("\r\n")) return;
 }
 
 void StaticHttpService::SendBody(FILE* fp)
@@ -166,7 +166,7 @@ void StaticHttpService::SendBody(FILE* fp)
 	ret = fgets(buf, sizeof(buf), fp);
 	while (!feof(fp))
 	{
-		WriteBuf(std::string(buf));
+		if (!WriteBuf(std::string(buf))) return;
 		ret = fgets(buf, sizeof(buf), fp);
 	}
 }

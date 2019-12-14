@@ -117,11 +117,11 @@ namespace kikilib
 		////////////////////////////socket缓冲区相关的操作API/////////////////////////////////
 
 		//向socket写一个int数字num
-		void WriteInt32(int num);
+		bool WriteInt32(int num);
 		
 		//向socket写内容content
-		void WriteBuf(std::string& content);
-		void WriteBuf(std::string&& content);
+		bool WriteBuf(std::string& content);
+		bool WriteBuf(std::string&& content);
 
 		//读取一个int，若缓存中没有，则返回false
 		bool ReadInt32(int& res);
