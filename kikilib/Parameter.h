@@ -20,7 +20,7 @@ namespace kikilib
 		static const int64_t kLogBufferLen = 4194304;
 
 		//日志是否自动添加时间戳
-		static const bool isAddTimestampInLog = false;
+		static const bool isAddTimestampInLog = true;
 
 		static_assert(((kLogBufferLen > 0) && ((kLogBufferLen& (~kLogBufferLen + 1)) == kLogBufferLen)),
 			"RingBuffer's size must be a positive power of 2");
