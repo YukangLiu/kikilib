@@ -1,6 +1,8 @@
 # kikilib网络库
 blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
+[版本说明]https://github.com/YukangLiu/kikilib/blob/master/Version.md<br>
+<br>
 <br>
 1、定位：<br>
 	kikilib网络库是轻量，高性能，纯c++11，更符合OOP语言特点且易用的一个Linux服务器网络库，它没有繁琐的回调函数设置和上下文指针机制，这让它的使用和对象的生命期管理都变得更加简单。<br>
