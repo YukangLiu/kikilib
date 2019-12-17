@@ -308,3 +308,8 @@ void* EventManager::getEvMgrCtx()
 {
 	return _pCtx; 
 }
+
+size_t EventManager::eventServeCnt()
+{
+	return _eventSet.size();
+}

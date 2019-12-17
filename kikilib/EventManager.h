@@ -88,6 +88,9 @@ namespace kikilib
 		//获得EventManager区域唯一的上下文内容
 		void* getEvMgrCtx();
 
+		//获取当前EventManager管理了多少EventService
+		size_t eventServeCnt();
+
 	private:
 		//当前manager的索引号，有些场景需要某个manager专门处理某种事件
 		const int _idx;

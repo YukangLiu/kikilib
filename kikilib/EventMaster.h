@@ -65,7 +65,7 @@ namespace kikilib
 		//std::thread* _acceptor;
 
 		//创建事件服务的工厂
-		EventServiceFactory<ConcreteEventService> _pEvServeFac;
+		EventServiceFactory<ConcreteEventService> _evServeFac;
 
 		//线程池
 		ThreadPool* _pThreadPool;
@@ -74,7 +74,7 @@ namespace kikilib
 		Socket _listener;
 
 		//事件管理器的选择器，用于选择下一个事件由哪个事件管理器管理
-		ManagerSelector _mgrSelector;
+		ManagerSelector* _pMgrSelector;
 
 		//事件管理器列表
 		std::vector<EventManager*> _evMgrs;
@@ -82,10 +82,11 @@ namespace kikilib
 
 	template<class ConcreteEventService>
 	inline EventMaster<ConcreteEventService>::EventMaster()
-		: _stop(true)
+		: _stop(true), _pThreadPool(nullptr), _pMgrSelector(nullptr)
 	{
 		StartLogMgr(Parameter::logName);
 		_pThreadPool = new ThreadPool();
+		_pMgrSelector = new ManagerSelector(_evMgrs);
 	}
 
 	template<class ConcreteEventService>
@@ -95,6 +96,10 @@ namespace kikilib
 		if (_pThreadPool)
 		{
 			delete _pThreadPool;
+		}
+		if (_pMgrSelector)
+		{
+			delete _pMgrSelector;
 		}
 		EndLogMgr();
 	}
@@ -123,9 +128,6 @@ namespace kikilib
 			RecordLog("listener unuseful!");
 			return false;
 		}
-
-		//初始化负载均衡器
-		_mgrSelector.setManagerCnt(mgrCnt);
 
 		//初始化EventManager
 		for (int i = 0; i < mgrCnt; ++i)
@@ -171,11 +173,11 @@ namespace kikilib
 
 			conn.setTcpNoDelay(Parameter::isNoDelay);
 			RecordLog("accept a new usr ,ip : " + conn.ip());
-			int nextMgrIdx = _mgrSelector.next();
-			EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
+			EventManager* pEvMgr = _pMgrSelector->next();
+			EventService* ev = _evServeFac.CreateEventService(conn, pEvMgr);
 			if (ev)
 			{
-				_evMgrs[nextMgrIdx]->insertEv(ev);
+				pEvMgr->insertEv(ev);
 			}
 			else
 			{
