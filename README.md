@@ -1,7 +1,7 @@
 # kikilib网络库
 blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
-[版本说明]https://github.com/YukangLiu/kikilib/blob/master/Version.md<br>
+[版本说明](https://github.com/YukangLiu/kikilib/blob/master/Version.md)<br>
 <br>
 <br>
 1、定位：<br>
