@@ -27,12 +27,12 @@ enum LogDataType
 
 ////////////////////////////////////全局使用的API/////////////////////////////////
 //打开日志管理器
-#define StartLogMgr(logPath) (kikilib::LogManager::GetLogMgr()->StartLogManager((logPath)))
+#define StartLogMgr(logPath) (kikilib::LogManager::getLogMgr()->startLogManager((logPath)))
 //关闭日志管理器
-#define EndLogMgr() (kikilib::LogManager::GetLogMgr()->EndLogManager())
+#define EndLogMgr() (kikilib::LogManager::getLogMgr()->endLogManager())
 //记录日志，使用该宏即可
 //注意，为了效率，所有的日志内容都是转移的，即调用完该函数，原始string内容会没有了，用户若需要备份需要自己拷贝一份
-#define RecordLog(...) (kikilib::LogManager::GetLogMgr()->Record(__VA_ARGS__))
+#define RecordLog(...) (kikilib::LogManager::getLogMgr()->recordInLog(__VA_ARGS__))
 
 namespace kikilib
 {
@@ -64,29 +64,29 @@ namespace kikilib
 
 		//初始化LogManager，调用方法为kikilib::LogManager::GetLogMgr()->InitLogManager(path)
 		//在程序启动时必须先调用该函数，否则该类的使用是异常的
-		bool StartLogManager(std::string logPath);
+		bool startLogManager(std::string logPath);
 
 		//结束日志管理器，关闭进程前必须执行
-		void EndLogManager();
+		void endLogManager();
 
 		//获取日志管理对象实例
 		//若没有初始化则返回nullptr
-		static LogManager* GetLogMgr();
+		static LogManager* getLogMgr();
 
 		//记录日志
-		void Record(const char* logData);
-		void Record(std::string& logData);
-		void Record(std::string&& logData);
-		void Record(unsigned dataType, const char* logData);
-		void Record(unsigned dataType, std::string& logData);
-		void Record(unsigned dataType, std::string&& logData);
+		void recordInLog(const char* logData);
+		void recordInLog(std::string& logData);
+		void recordInLog(std::string&& logData);
+		void recordInLog(unsigned dataType, const char* logData);
+		void recordInLog(unsigned dataType, std::string& logData);
+		void recordInLog(unsigned dataType, std::string&& logData);
 
 	private:
 		//向磁盘写入日志
-		void WriteDownLog();
+		void writeDownLog();
 
 		//更新日志系统的时间
-		void UpdateLogTime();
+		void updateLogTime();
 
 	private:
 		//日志管理器实例
@@ -133,7 +133,7 @@ namespace kikilib
 
 		time_t _logTimeSec;
 
-		//时区偏置单位为秒
+		//时区偏置,单位为秒
 		long _timeZone;
 
 		std::array<std::string, Parameter::kLogBufferLen> _ringBuf;

@@ -2,23 +2,23 @@
 #include "ChatRoomService.h"
 #include "LogManager.h"
 
-void ChatRoomService::HandleConnectionEvent()
+void ChatRoomService::handleConnectionEvent()
 {
 	RecordLog("accept a new client(ip:port) " + peerIP() + " : " + std::to_string(peerPort()));
 	_peerSets->insert(this);
 };
 
-void ChatRoomService::HandleReadEvent()
+void ChatRoomService::handleReadEvent()
 {
-	std::string str = ReadAll();
+	std::string str = readAll();
 	for (auto peer : *_peerSets)
 	{
-		peer->WriteBuf(str);
+		peer->sendContent(str);
 	}
 };
 
-void ChatRoomService::HandleErrEvent()
+void ChatRoomService::handleErrEvent()
 {
     _peerSets->erase(this);
-	Close();
+	forceClose();
 };

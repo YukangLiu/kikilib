@@ -7,11 +7,15 @@
 #include <set>
 #include <string>
 
+class ChatRoomService;
+
+extern std::set<ChatRoomService*> peersSet;
+
 class ChatRoomService : public kikilib::EventService
 {
 public:
-	ChatRoomService(std::set<ChatRoomService*>* peerSets, kikilib::Socket sock, kikilib::EventManager* evMgr)
-		: _peerSets(peerSets), EventService(sock, evMgr)
+	ChatRoomService(kikilib::Socket sock, kikilib::EventManager* evMgr)
+		: EventService(sock, evMgr) , _peerSets(&peersSet)
 	{ }
 
 	~ChatRoomService()
@@ -19,11 +23,11 @@ public:
 		_peerSets->erase(this);
 	}
 
-	virtual void HandleConnectionEvent();
+	virtual void handleConnectionEvent();
 
-	virtual void HandleReadEvent();
+	virtual void handleReadEvent();
 
-	virtual void HandleErrEvent();
+	virtual void handleErrEvent();
 
 private:
 	std::set<ChatRoomService*>* _peerSets;

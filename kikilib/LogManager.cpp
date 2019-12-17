@@ -22,7 +22,7 @@ LogManager::LogManager() :
 	_timeZone(0)
 { }
 
-bool LogManager::StartLogManager(std::string logPath)
+bool LogManager::startLogManager(std::string logPath)
 {
 	if (!_isInit)
 	{
@@ -41,17 +41,17 @@ bool LogManager::StartLogManager(std::string logPath)
 			fflush(_logFile);
 			_isInit = true;
 			//创建一个线程持续写日志
-			_logLoop = new std::thread(&LogManager::WriteDownLog, this);
+			_logLoop = new std::thread(&LogManager::writeDownLog, this);
 		}
 	}
 	time_t tmpTime = 0;
 	struct tm* tm = localtime(&tmpTime);
 	_timeZone = 0 - tm->tm_hour * 60 * 60;//* 60 * 60秒 
-	UpdateLogTime();
+	updateLogTime();
 	return true;
 }
 
-void LogManager::EndLogManager()
+void LogManager::endLogManager()
 {
 	_stop.store(1L);
 	_condition.notify_one();
@@ -61,7 +61,7 @@ void LogManager::EndLogManager()
 	delete _logLoop;
 }
 
-LogManager* LogManager::GetLogMgr()
+LogManager* LogManager::getLogMgr()
 {
 	if (!_logMgr)
 	{
@@ -78,32 +78,32 @@ LogManager* LogManager::GetLogMgr()
 	return _logMgr;
 }
 
-void LogManager::Record(std::string& logDate)
+void LogManager::recordInLog(std::string& logDate)
 {
-	Record(std::move(logDate));
+	recordInLog(std::move(logDate));
 }
 
-void LogManager::Record(const char* logData)
+void LogManager::recordInLog(const char* logData)
 {
-	Record(std::move(std::string(logData)));
+	recordInLog(std::move(std::string(logData)));
 }
 
-void LogManager::Record(unsigned dataType, const char* logData)
+void LogManager::recordInLog(unsigned dataType, const char* logData)
 {
-	Record(std::move(std::string(LogDataTypeStr[dataType] + logData)));
+	recordInLog(std::move(std::string(LogDataTypeStr[dataType] + logData)));
 }
 
-void LogManager::Record(unsigned dataType, std::string& logData)
+void LogManager::recordInLog(unsigned dataType, std::string& logData)
 {
-	Record(std::move(LogDataTypeStr[dataType] + logData));
+	recordInLog(std::move(LogDataTypeStr[dataType] + logData));
 }
 
-void LogManager::Record(unsigned dataType, std::string&& logData)
+void LogManager::recordInLog(unsigned dataType, std::string&& logData)
 {
-	Record(std::move(LogDataTypeStr[dataType] + logData));
+	recordInLog(std::move(LogDataTypeStr[dataType] + logData));
 }
 
-void LogManager::Record(std::string&& logDate)
+void LogManager::recordInLog(std::string&& logDate)
 {
 	if (_writableSeq.load() - _lastRead.load() >= Parameter::kLogBufferLen - 1)
 	{//满了放弃该条日志，因为这种情况下往往前面的日志更有价值
@@ -116,8 +116,9 @@ void LogManager::Record(std::string&& logDate)
 	{
 		if (Time::nowSec() > _logTimeSec)
 		{//当前服务器的大致时间比日志系统存储的时间要大上1s时更新日志系统的时间字符串
-			UpdateLogTime();
+			updateLogTime();
 		}
+		//memcpy是线程安全的
 		std::string cpLogTimeStr(_logTimeStr.c_str());
 		std::string realLogData(cpLogTimeStr.size() + logDate.size() + 2, ' ');//+2是因为给时间和日志中间留一个空格，最后加一个换行符
 		//拷贝时间
@@ -147,21 +148,21 @@ void LogManager::Record(std::string&& logDate)
 	}
 }
 
-void LogManager::UpdateLogTime()
+void LogManager::updateLogTime()
 {
 	std::lock_guard<std::mutex> lock(_timeMutex);
 	if (Time::nowSec() > _logTimeSec)
 	{//当前服务器的大致时间比日志系统存储的时间要大上1s时更新日志系统的时间字符串
 		_logTimeSec = Time::nowSec();
 		struct tm t;
-		Time::ToLocalTime(_logTimeSec, _timeZone, &t);
+		Time::toLocalTime(_logTimeSec, _timeZone, &t);
 		std::string cp(_logTimeStr.c_str());
 		strftime(&(*cp.begin()), cp.size() + 1, "%Y-%m-%d %H:%M:%S", &t);
 		_logTimeStr = std::move(cp);
 	}
 }
 
-void LogManager::WriteDownLog()
+void LogManager::writeDownLog()
 {
 	const int64_t kMaxPerLogFileByte = Parameter::maxLogDiskByte / 2;
 	while (true)

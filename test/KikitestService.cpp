@@ -5,67 +5,67 @@
 
 #include <stdio.h>
 
-void KikitestService::HandleReadEvent()
+void KikitestService::handleReadEvent()
 {
 	int len = -4;
 	std::string str;
-	WriteInt32(15);
+	sendInt32(15);
 	kikilib::Time start(0);
 	kikilib::Time end(0);
-	while (ReadInt32(len))
+	while (readInt32(len))
 	{
 		switch (len)
 		{
 		case 0:
-			str = ReadLineEndOfN();
+			str = readLineEndOfN();
 			RecordLog(str);
 			break;
 
 		case -1:
-			str = ReadLineEndOfR();
+			str = readLineEndOfR();
 			RecordLog(str);
 			break;
 
 		case -2:
-			str = ReadAll();
-			RunInThreadPool(
+			str = readAll();
+			runInThreadPool(
 				[this]
 				{
-					this->MotifyVal();
+					this->modifyVal();
 				}
 			);
-			RunEvery(150,
+			runEvery(150,
 				[this]
 				{
-					RecordLog(std::to_string(this->GetVal()));
+					RecordLog(std::to_string(this->getVal()));
 				}
 				);
 			break;
 
 		case -3:
-			str = ReadAll();
-			RunAfter(
+			str = readAll();
+			runAfter(
 				1000000,
 				[this]
 				{
-					this->MotifyVal();
+					this->modifyVal();
 				}
 				);
-			RunEveryUntil(20000,
+			runEveryUntil(20000,
 				[this]
 				{
-					RecordLog(std::to_string(this->GetVal()));
+					RecordLog(std::to_string(this->getVal()));
 				},
 				[this]()
 					->bool
 				{
-					return this->GetVal() != 100;
+					return this->getVal() != 100;
 				}
 				);
 			break;
 
 		case -4:
-			str = ReadAll();
+			str = readAll();
 			//我的机器上用双缓存队列50000000条数据是11.26sec
 			//我的机器上用环形队列50000000条数据是5.26sec，快了一倍
 			start = kikilib::Time::now();
@@ -74,11 +74,11 @@ void KikitestService::HandleReadEvent()
 				RecordLog(DEBUG_DATA_INFORMATION,std::to_string(i));
 			}
 			end = kikilib::Time::now();
-			printf("%dms\n", (int)(end.GetTimeVal() - start.GetTimeVal()) / 1000);
+			printf("%dms\n", (int)(end.getTimeVal() - start.getTimeVal()) / 1000);
 			break;
 
 		default:
-			str = ReadBuf(len);
+			str = readBuf(len);
 			RecordLog(str);
 			break;
 		}
@@ -86,7 +86,7 @@ void KikitestService::HandleReadEvent()
 	
 };
 
-void KikitestService::HandleErrEvent()
+void KikitestService::handleErrEvent()
 {
-	Close();
+	forceClose();
 };

@@ -11,8 +11,8 @@ TimerEventService::TimerEventService(Socket&& sock, EventManager* evMgr)
 	: EventService(std::move(sock), evMgr)
 { }
 
-void TimerEventService::HandleReadEvent()
+void TimerEventService::handleReadEvent()
 {
-	ReadAll();
-	RunExpired();
+	readAll();
+	runExpired();
 }

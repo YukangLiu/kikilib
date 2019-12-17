@@ -26,37 +26,37 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SocketReader);
 
 		//缓冲区是否为空
-		bool IsEmptyAfterRead();
+		bool isEmptyAfterRead();
 
 		//读取一个int，若缓存中没有，则返回false
-		bool ReadInt32(int& res);
+		bool readInt32(int& res);
 
 		//读取一个int64，若缓存中没有，则返回false，未来实现
 		//bool ReadInt64(int64_t& res);
 
 		//读取长度为len的数据，若没有长度为len的数据，则返回空串
-		std::string Read(size_t len);
+		std::string read(size_t len);
 
 		//读取长度为len的数据，若没有长度为len的数据，则返回false
-		bool Read(char* buf, size_t len);
+		bool read(char* buf, size_t len);
 
 		//读一行，该行以\r\n结尾,若没有，返回空串
-		std::string ReadLineEndOfRN();
+		std::string readLineEndOfRN();
 
 		//读一行，该行以\r结尾,若没有，返回空串
-		std::string ReadLineEndOfR();
+		std::string readLineEndOfR();
 
 		//读一行，该行以\n结尾,若没有，返回空串
-		std::string ReadLineEndOfN();
+		std::string readLineEndOfN();
 
 		//读取所有能读取的数据，没有则返回空串
-		std::string ReadAll();
+		std::string readAll();
 		
 
 	private:
 
 		//尝试读取能填满缓冲区的数据,若缓冲区已经满了，会先扩充1.5倍大小
-		ssize_t ReadFillBuf();
+		ssize_t readFillBuf();
 
 		Socket _sock;
 

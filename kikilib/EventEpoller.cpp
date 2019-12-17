@@ -24,13 +24,13 @@ EventEpoller::~EventEpoller()
 	}
 };
 
-bool EventEpoller::Init()
+bool EventEpoller::init()
 {
 	_epollFd = ::epoll_create1(EPOLL_CLOEXEC);
-	return IsEpollFdUsefulAndMark();
+	return isEpollFdUsefulAndMark();
 }
 
-bool EventEpoller::IsEpollFdUsefulAndMark()
+bool EventEpoller::isEpollFdUsefulAndMark()
 {
 	if (_epollFd < 0)
 	{
@@ -41,9 +41,9 @@ bool EventEpoller::IsEpollFdUsefulAndMark()
 }
 
 //修改EventEpoller中的事件
-void EventEpoller::MotifyEv(EventService* evServ)
+void EventEpoller::modifyEv(EventService* evServ)
 {
-	if (!IsEpollFdUsefulAndMark())
+	if (!isEpollFdUsefulAndMark())
 	{
 		return;
 	}
@@ -54,9 +54,9 @@ void EventEpoller::MotifyEv(EventService* evServ)
 	}
 	struct epoll_event event;
 	memset(&event, 0, sizeof(event));
-	event.events = evServ->GetInteresEv();
+	event.events = evServ->getInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->GetFd();
+	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event motify. errno : ") + std::to_string(errno));
@@ -64,9 +64,9 @@ void EventEpoller::MotifyEv(EventService* evServ)
 }
 
 //向EventEpoller中添加事件
-void EventEpoller::AddEv(EventService* evServ)
+void EventEpoller::addEv(EventService* evServ)
 {
-	if (!IsEpollFdUsefulAndMark())
+	if (!isEpollFdUsefulAndMark())
 	{
 		return;
 	}
@@ -77,9 +77,9 @@ void EventEpoller::AddEv(EventService* evServ)
 	}
 	struct epoll_event event;
 	memset(&event, 0, sizeof(event));
-	event.events = evServ->GetInteresEv();
+	event.events = evServ->getInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->GetFd();
+	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event add. errno : ") + std::to_string(errno));
@@ -87,9 +87,9 @@ void EventEpoller::AddEv(EventService* evServ)
 }
 
 //从EventEpoller中移除事件
-void EventEpoller::RemoveEv(EventService* evServ)
+void EventEpoller::removeEv(EventService* evServ)
 {
-	if (!IsEpollFdUsefulAndMark())
+	if (!isEpollFdUsefulAndMark())
 	{
 		return;
 	}
@@ -99,18 +99,18 @@ void EventEpoller::RemoveEv(EventService* evServ)
 	}
 	struct epoll_event event;
 	memset(&event, 0, sizeof(event));
-	event.events = evServ->GetInteresEv();
+	event.events = evServ->getInteresEv();
 	event.data.ptr = evServ;
-	int fd = evServ->GetFd();
+	int fd = evServ->fd();
 	if (::epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &event) < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::string("event remove. errno : ") + std::to_string(errno));
 	}
 }
 
-void EventEpoller::GetActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs)
+void EventEpoller::getActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs)
 {
-	if (!IsEpollFdUsefulAndMark())
+	if (!isEpollFdUsefulAndMark())
 	{
 		return;
 	}
@@ -127,7 +127,7 @@ void EventEpoller::GetActEvServ(int timeOutMs, std::vector<EventService*>& activ
 		{
 			//设置事件类型，放进活跃事件列表中
 			EventService* evServ = static_cast<EventService*>(_activeEpollEvents[i].data.ptr);
-			evServ->SetEventState(_activeEpollEvents[i].events);
+			evServ->setEventState(_activeEpollEvents[i].events);
 			activeEvServs.push_back(evServ);
 		}
 		if (actEvNum == static_cast<int>(_activeEpollEvents.size()))

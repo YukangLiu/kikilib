@@ -30,7 +30,7 @@ time_t Time::nowSec()
 //	_roughTime = tv.tv_sec;
 //}
 
-void Time::ToLocalTime(time_t second, long timezone, struct tm* tm_time)
+void Time::toLocalTime(time_t second, long timezone, struct tm* tm_time)
 {
 	uint32_t n32_Pass4year;
 	int32_t n32_hpery;
@@ -96,9 +96,9 @@ void Time::ToLocalTime(time_t second, long timezone, struct tm* tm_time)
 		}
 	}
 	//¼ÆËãÔÂÈÕ
-	for (tm_time->tm_mon = 0; Days[tm_time->tm_mon] < second; tm_time->tm_mon++)
+	for (tm_time->tm_mon = 0; days[tm_time->tm_mon] < second; tm_time->tm_mon++)
 	{
-		second -= Days[tm_time->tm_mon];
+		second -= days[tm_time->tm_mon];
 	}
 
 	tm_time->tm_mday = (int)(second);
@@ -106,9 +106,9 @@ void Time::ToLocalTime(time_t second, long timezone, struct tm* tm_time)
 	return;
 }
 
-struct timespec Time::TimeIntervalFromNow()
+struct timespec Time::timeIntervalFromNow()
 {
-	int64_t microseconds = _timeVal - Time::now().GetTimeVal();
+	int64_t microseconds = _timeVal - Time::now().getTimeVal();
 	if (microseconds < 100)
 	{
 		microseconds = 100;

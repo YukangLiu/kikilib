@@ -14,13 +14,13 @@ public:
 	~KikitestService()
 	{ }
 
-	virtual void HandleReadEvent();
+	virtual void handleReadEvent();
 
-	virtual void HandleErrEvent();
+	virtual void handleErrEvent();
 
-	int GetVal() { return _valForPool; }
+	int getVal() { return _valForPool; }
 
-	void MotifyVal() { _valForPool = 100; }
+	void modifyVal() { _valForPool = 100; }
 
 private:
 

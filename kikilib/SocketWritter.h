@@ -29,16 +29,16 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SocketWtitter);
 
 		//发送一个int,发送失败则返回false
-		bool SendInt32(int res);
+		bool sendInt32(int res);
 
 		//发送一个字符串,发送失败则返回false
-		bool Send(std::string& str);
+		bool send(std::string& str);
 
 		//发送一个字符串,发送失败则返回false
-		bool Send(std::string&& str);
+		bool send(std::string&& str);
 
 		//将缓冲区内容写进socket中
-		void WriteBufToSock();
+		void writeBufToSock();
 
 	private:
 

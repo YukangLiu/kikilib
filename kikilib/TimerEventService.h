@@ -19,7 +19,7 @@ namespace kikilib
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(TimerEventService);
 
-		void HandleReadEvent();
+		void handleReadEvent();
 
 	};
 

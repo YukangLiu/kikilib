@@ -14,12 +14,12 @@
 
 static std::string rootPath(".");
 
-void StaticHttpService::HandleReadEvent()
+void StaticHttpService::handleReadEvent()
 {
 	struct stat st;
 
 	//读http 请求的第一行数据（request line），把请求方法存进 method 中
-	std::string line = ReadLineEndOfRN();
+	std::string line = readLineEndOfRN();
 	int lineN = line.size();
 	if (lineN <= 0)
 	{//客户端还没发完
@@ -39,8 +39,8 @@ void StaticHttpService::HandleReadEvent()
 	if (method != "GET")
 	{
 		//忽略剩下的内容
-		ReadAll();
-		SendUnImpletement();
+		readAll();
+		sendUnImpletement();
 		return;
 	}
 
@@ -72,11 +72,11 @@ void StaticHttpService::HandleReadEvent()
 		path += "index.html";
 	}
 	//忽略剩下的内容
-	ReadAll();
+	readAll();
 	//在系统上去查询该文件是否存在
 	if (stat(path.c_str(), &st) == -1)
 	{//如果不存在，返回一个找不到文件的 response 给客户端
-		SendNotFount();
+		sendNotFount();
 	}
 	else
 	{//文件存在，那去跟常量S_IFMT相与，相与之后的值可以用来判断该文件是什么类型的
@@ -91,30 +91,30 @@ void StaticHttpService::HandleReadEvent()
 		//}
 		//else
 		{
-			SendFile(path);
+			sendFile(path);
 		}
 	}
-	Close();
+	forceClose();
 }
 
-void StaticHttpService::HandleErrEvent()
+void StaticHttpService::handleErrEvent()
 {
-	Close();
+	forceClose();
 }
 
-void StaticHttpService::SendUnImpletement()
+void StaticHttpService::sendUnImpletement()
 {
-	if(!WriteBuf("HTTP/1.0 501 Method Not Implemented\r\n")) return;
-	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
-	if(!WriteBuf("Content-Type: text/html\r\n")) return;
-	if(!WriteBuf("\r\n")) return;
-	if(!WriteBuf("<HTML><TITLE>Method Not Implemented\r\n")) return;
-	if(!WriteBuf("</TITLE></HEAD>\r\n")) return;
-	if(!WriteBuf("<BODY><P>HTTP request method not supported.\r\n")) return;
-	if(!WriteBuf("</BODY></HTML>\r\n")) return;
+	if (!sendContent("HTTP/1.0 501 Method Not Implemented\r\n")) return;
+	if (!sendContent("Server: kikihttp/0.1.0\r\n")) return;
+	if (!sendContent("Content-Type: text/html\r\n")) return;
+	if (!sendContent("\r\n")) return;
+	if (!sendContent("<HTML><TITLE>Method Not Implemented\r\n")) return;
+	if (!sendContent("</TITLE></HEAD>\r\n")) return;
+	if (!sendContent("<BODY><P>HTTP request method not supported.\r\n")) return;
+	if (!sendContent("</BODY></HTML>\r\n")) return;
 }
 
-void StaticHttpService::SendFile(std::string& path)
+void StaticHttpService::sendFile(std::string& path)
 {
 	FILE* fp = NULL;
 
@@ -122,43 +122,43 @@ void StaticHttpService::SendFile(std::string& path)
 	fp = fopen(path.c_str(), "r");
 	if (fp == NULL)
 	{
-		SendNotFount();
+		sendNotFount();
 	}
 	else
 	{
 		//打开成功后，将这个文件的基本信息封装成 response 的头部(header)并返回
-		SendHeader(path);
+		sendHeader(path);
 		//接着把这个文件的内容读出来作为 response 的 body 发送到客户端
-		SendBody(fp);
+		sendBody(fp);
 
 		fclose(fp);
 	}
 	
 }
 
-void StaticHttpService::SendNotFount()
+void StaticHttpService::sendNotFount()
 {
-	if(!WriteBuf("HTTP/1.0 404 NOT FOUND\r\n")) return;
-	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
-	if(!WriteBuf("Content-Type: text/html\r\n")) return;
-	if(!WriteBuf("\r\n")) return;
-	if(!WriteBuf("<HTML><TITLE>Not Found</TITLE>\r\n")) return;
-	if(!WriteBuf("<BODY><P>The server could not fulfill\r\n")) return;
-	if(!WriteBuf("your request because the resource specified\r\n")) return;
-	if(!WriteBuf("is unavailable or nonexistent.\r\n")) return;
-	if(!WriteBuf("</BODY></HTML>\r\n")) return;
+	if(!sendContent("HTTP/1.0 404 NOT FOUND\r\n")) return;
+	if(!sendContent("Server: kikihttp/0.1.0\r\n")) return;
+	if(!sendContent("Content-Type: text/html\r\n")) return;
+	if(!sendContent("\r\n")) return;
+	if(!sendContent("<HTML><TITLE>Not Found</TITLE>\r\n")) return;
+	if(!sendContent("<BODY><P>The server could not fulfill\r\n")) return;
+	if(!sendContent("your request because the resource specified\r\n")) return;
+	if(!sendContent("is unavailable or nonexistent.\r\n")) return;
+	if(!sendContent("</BODY></HTML>\r\n")) return;
 }
 
-void StaticHttpService::SendHeader(std::string& path)
+void StaticHttpService::sendHeader(std::string& path)
 {
 	//path后缀可以得到文件类型，太多了，以后有空再写
-	if(!WriteBuf("HTTP/1.0 200 OK\r\n")) return;
-	if(!WriteBuf("Server: kikihttp/0.1.0\r\n")) return;
-	if(!WriteBuf("Content-Type: text/html\r\n")) return;
-	if(!WriteBuf("\r\n")) return;
+	if(!sendContent("HTTP/1.0 200 OK\r\n")) return;
+	if(!sendContent("Server: kikihttp/0.1.0\r\n")) return;
+	if(!sendContent("Content-Type: text/html\r\n")) return;
+	if(!sendContent("\r\n")) return;
 }
 
-void StaticHttpService::SendBody(FILE* fp)
+void StaticHttpService::sendBody(FILE* fp)
 {
 	char buf[1024];
 	char* ret;
@@ -166,7 +166,7 @@ void StaticHttpService::SendBody(FILE* fp)
 	ret = fgets(buf, sizeof(buf), fp);
 	while (!feof(fp))
 	{
-		if (!WriteBuf(std::string(buf))) return;
+		if (!sendContent(std::string(buf))) return;
 		ret = fgets(buf, sizeof(buf), fp);
 	}
 }

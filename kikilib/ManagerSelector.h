@@ -9,11 +9,11 @@ namespace kikilib
 	public:
 		ManagerSelector(int mgrCnt = 0) : _mgrCnt(mgrCnt), _curMgr(-1) {}
 
-		void SetManagerCnt(int mgrCnt) { _mgrCnt = mgrCnt; };
+		void setManagerCnt(int mgrCnt) { _mgrCnt = mgrCnt; };
 
-		void SetStrategy(int);
+		void setStrategy(int);
 
-		int Next() 
+		int next() 
 		{
 			++_curMgr;
 			if (_curMgr >= _mgrCnt)

@@ -29,7 +29,7 @@ ThreadPool::ThreadPool()
 						}
 						int taskQue = !_usableQue;
 						if (this->_tasks[taskQue].empty())
-						{//这里的目的是尽可能减少对主进程的阻塞
+						{
 							this->_changeQueMutex.lock();
 							_usableQue = taskQue;
 							this->_changeQueMutex.unlock();

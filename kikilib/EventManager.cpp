@@ -35,7 +35,7 @@ EventManager::~EventManager()
 	}
 }
 
-bool EventManager::Loop()
+bool EventManager::loop()
 {
 	if (_pThreadPool == nullptr)
 	{//判断线程池工具是否有效
@@ -43,7 +43,7 @@ bool EventManager::Loop()
 		return false;
 	}
 	//初始化EventEpoller
-	if (!_epoller.Init())
+	if (!_epoller.init())
 	{
 		RecordLog(ERROR_DATA_INFORMATION, std::to_string(_idx) + " init epoll fd failed!");
 		return false;
@@ -60,9 +60,9 @@ bool EventManager::Loop()
 	_pTimer = new Timer(timeSock);
 	EventService* pTimerServe = new TimerEventService(timeSock, this);
 	//设置定时器事件为优先级最高的事件
-	pTimerServe->SetEventPriority(IMMEDIATE_EVENT);
+	pTimerServe->setEventPriority(IMMEDIATE_EVENT);
 
-	Insert(pTimerServe);
+	insertEv(pTimerServe);
 
 	//初始化loop
 	_pLooper = new std::thread(
@@ -83,13 +83,13 @@ bool EventManager::Loop()
                     }
 				}
 				//获取活跃事件
-				this->_epoller.GetActEvServ(Parameter::epollTimeOutMs, this->_actEvServs);
+				this->_epoller.getActEvServ(Parameter::epollTimeOutMs, this->_actEvServs);
 				//每次epoll更新一次服务器大致时间
 				//Time::UpdataRoughTime();
 				//按优先级分队
 				for (auto pEvServ : this->_actEvServs)
 				{
-					if (pEvServ->GetEventPriority() >= IMMEDIATE_EVENT)
+					if (pEvServ->getEventPriority() >= IMMEDIATE_EVENT)
 					{
 						(this->_priorityEvQue[IMMEDIATE_EVENT]).push_back(pEvServ);
 					}
@@ -103,14 +103,14 @@ bool EventManager::Loop()
 				{
 					for (auto evServ : this->_priorityEvQue[i])
 					{
-						evServ->HandleEvent();
+						evServ->handleEvent();
 					}
 				}
 				//处理不再关注的事件
 				for (auto unusedEv : this->_removedEv)
 				{
 					//从监听事件中移除
-					this->_epoller.RemoveEv(unusedEv);
+					this->_epoller.removeEv(unusedEv);
 					//close这个fd
 					delete unusedEv;
 				}
@@ -126,23 +126,23 @@ bool EventManager::Loop()
 }
 
 //向事件管理器中插入一个事件
-void EventManager::Insert(EventService* ev)
+void EventManager::insertEv(EventService* ev)
 {
 	if (!ev)
 	{
 		return;
 	}
 
-	if (ev->IsConnected())
+	if (ev->isConnected())
 	{//insert意味着连接事件的触发
-		ev->HandleConnectionEvent();
+		ev->handleConnectionEvent();
 	}
 	else
 	{
 		return;
 	}
 	
-	if (ev->IsConnected())
+	if (ev->isConnected())
 	{
 
 		{
@@ -150,13 +150,13 @@ void EventManager::Insert(EventService* ev)
 			_eventSet.insert(ev);
 		}
 
-		_epoller.AddEv(ev);
+		_epoller.addEv(ev);
 	}
 	
 }
 
 //向事件管理器中移除一个事件
-void EventManager::Remove(EventService* ev)
+void EventManager::removeEv(EventService* ev)
 {
 	if (!ev)
 	{
@@ -179,7 +179,7 @@ void EventManager::Remove(EventService* ev)
 }
 
 //向事件管理器中修改一个事件服务所关注的事件类型
-void EventManager::Motify(EventService* ev)
+void EventManager::modifyEv(EventService* ev)
 {
 	if (!ev)
 	{
@@ -197,66 +197,66 @@ void EventManager::Motify(EventService* ev)
 
 	if (isNewEv)
 	{
-		Insert(ev);
+		insertEv(ev);
 	}
 	else
 	{
-		_epoller.MotifyEv(ev);
+		_epoller.modifyEv(ev);
 	}
 }
 
-void EventManager::RunAt(Time time, std::function<void()>&& timerCb)
+void EventManager::runAt(Time time, std::function<void()>&& timerCb)
 {
 	std::lock_guard<std::mutex> lock(_timerMutex);
-	_pTimer->RunAt(time, std::move(timerCb));
+	_pTimer->runAt(time, std::move(timerCb));
 }
 
-void EventManager::RunAt(Time time, std::function<void()>& timerCb)
+void EventManager::runAt(Time time, std::function<void()>& timerCb)
 {
 	std::lock_guard<std::mutex> lock(_timerMutex);
-	_pTimer->RunAt(time, timerCb);
+	_pTimer->runAt(time, timerCb);
 }
 
 //time时间后执行timerCb函数
-void EventManager::RunAfter(Time time, std::function<void()>&& timerCb)
+void EventManager::runAfter(Time time, std::function<void()>&& timerCb)
 {
-	Time runTime(Time::now().GetTimeVal() + time.GetTimeVal());
+	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
 		std::lock_guard<std::mutex> lock(_timerMutex);
-		_pTimer->RunAt(runTime, std::move(timerCb));
+		_pTimer->runAt(runTime, std::move(timerCb));
 	}
 }
 
 //time时间后执行timerCb函数
-void EventManager::RunAfter(Time time, std::function<void()>& timerCb)
+void EventManager::runAfter(Time time, std::function<void()>& timerCb)
 {
-	Time runTime(Time::now().GetTimeVal() + time.GetTimeVal());
+	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
 		std::lock_guard<std::mutex> lock(_timerMutex);
-		_pTimer->RunAt(runTime, timerCb);
+		_pTimer->runAt(runTime, timerCb);
 	}
 }
 
 //time时间后执行timerCb函数
-void EventManager::RunEvery(Time time, std::function<void()> timerCb)
+void EventManager::runEvery(Time time, std::function<void()> timerCb)
 {
 	//这里lamda表达式不加括号会立刻执行
 	std::function<void()> realTimerCb(
 		[this, time, timerCb]
 		{
 			timerCb();
-			this->RunEvery(time, timerCb);
+			this->runEvery(time, timerCb);
 		}
 		);
 
-	RunAfter(time, std::move(realTimerCb));
+	runAfter(time, std::move(realTimerCb));
 
 }
 
 //每过time时间执行一次timerCb函数,直到isContinue函数返回false
-void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+void EventManager::runEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
 {
 	std::function<void()> realTimerCb(
 		[this, time, timerCb, isContinue]
@@ -264,22 +264,22 @@ void EventManager::RunEveryUntil(Time time, std::function<void()> timerCb, std::
 			if (isContinue())
 			{
 				timerCb();
-				this->RunEveryUntil(time, timerCb, isContinue);
+				this->runEveryUntil(time, timerCb, isContinue);
 			}
 		}
 		);
 
-	RunAfter(time, std::move(realTimerCb));
+	runAfter(time, std::move(realTimerCb));
 }
 
 //运行所有已经超时的需要执行的函数
-void EventManager::RunExpired()
+void EventManager::runExpired()
 {
 	std::lock_guard<std::mutex> lock(_timerQueMutex);
 
 	{
 		std::lock_guard<std::mutex> lock(_timerMutex);
-		_pTimer->GetExpiredTask(_actTimerTasks);
+		_pTimer->getExpiredTask(_actTimerTasks);
 	}
 	
 	for (auto& task : _actTimerTasks)
@@ -291,20 +291,20 @@ void EventManager::RunExpired()
 }
 
 //将任务放在线程池中以达到异步执行的效果
-void EventManager::RunInThreadPool(std::function<void()>&& func)
+void EventManager::runInThreadPool(std::function<void()>&& func)
 {
     _pThreadPool->enqueue(std::move(func));
 }
 
 //设置EventManager区域唯一的上下文内容
-void EventManager::SetEvMgrCtx(void* ctx)
+void EventManager::setEvMgrCtx(void* ctx)
 {
 	std::lock_guard<std::mutex> lock(_ctxMutex);
 	_pCtx = ctx;
 }
 
 //设置EventManager区域唯一的上下文内容
-void* EventManager::GetEvMgrCtx() 
+void* EventManager::getEvMgrCtx() 
 {
 	return _pCtx; 
 }

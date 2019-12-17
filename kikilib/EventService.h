@@ -39,72 +39,72 @@ namespace kikilib
 
 		//////////////////////////////自身socket的操作API//////////////////////////////////
 
-		int GetFd() { return _sock.fd(); };
+		int fd() { return _sock.fd(); };
 
-		std::string GetPeerIP() { return _sock.GetIp(); };
+		std::string peerIP() { return _sock.ip(); };
 
-		int GetPeerPort() { return _sock.GetPort(); };
+		int peerPort() { return _sock.port(); };
 
 		//获取套接字的选项的字符串
-		std::string GetSocketOptString() { return _sock.GetSocketOptString(); };
+		std::string getSocketOptString() { return _sock.getSocketOptString(); };
 
 		//关闭当前事件
-		void Close();
-		void ShutDownWrite();
+		void forceClose();
+		void shutDownWrite();
 
 		///////////////////////////////自身事件的操作API///////////////////////////////////
 
 		//获取当前事件服务所关注的事件
-		int GetInteresEv() { return _interestEvent; };
+		int getInteresEv() { return _interestEvent; };
 		
 		//修改当前事件服务所关注的事件
-		void SetInteresEv(int newInterestEv);
+		void setInteresEv(int newInterestEv);
 
 		//获取当前事件的优先级
-		unsigned GetEventPriority() { return _eventPriority; };
+		unsigned getEventPriority() { return _eventPriority; };
 
 		//修改当前事件的优先级
-		void SetEventPriority(unsigned priority) { _eventPriority = priority; };
+		void setEventPriority(unsigned priority) { _eventPriority = priority; };
 
 		/////////////////////////////////事件管理的操作API///////////////////////////////////
 
 		//向事件管理器中插入一个事件,这是线程安全的
-		void Insert(EventService* ev);
+		void insertEvInThisEvMgr(EventService* ev);
 
 		//向事件管理器中移除一个事件,这是线程安全的
-		void Remove(EventService* ev);
+		void removeEvInThisEvMgr(EventService* ev);
 
 		//向事件管理器中修改一个事件服务所关注的事件类型,这是线程安全的
-		void Motify(EventService* ev);
+		void modifyEvInThisEvMgr(EventService* ev);
 
 		//获得EventManager区域唯一的上下文内容
-		void* GetEvMgrCtx();
+		void* getThisEvMgrCtx();
 
 		///////////////////////////////定时器相关的操作API///////////////////////////////////
 
 		//需要注意，如果timerCb里面会执行RunExpired()函数的话会发生死锁
 
 		//在time时刻执行timerCb函数
-		void RunAt(Time time, std::function<void()>&& timerCb);
-		void RunAt(Time time, std::function<void()>& timerCb);
+		void runAt(Time time, std::function<void()>&& timerCb);
+		void runAt(Time time, std::function<void()>& timerCb);
 
 		//time时间后执行timerCb函数
-		void RunAfter(Time time, std::function<void()>&& timerCb);
-		void RunAfter(Time time, std::function<void()>& timerCb);
+		void runAfter(Time time, std::function<void()>&& timerCb);
+		void runAfter(Time time, std::function<void()>& timerCb);
 
 		//虽然调用eventmanager的下面这几个函数是必须拷贝的，但是这里弄成这样可以减少一次拷贝
 		//每过time时间执行timerCb函数
-		void RunEvery(Time time, std::function<void()>&& timerCb);
-		void RunEvery(Time time, std::function<void()>& timerCb);
+		void runEvery(Time time, std::function<void()>&& timerCb);
+		void runEvery(Time time, std::function<void()>& timerCb);
 
 		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
-		void RunEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue);
-		void RunEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue);
-		void RunEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue);
-		void RunEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue);
+		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue);
+		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue);
+		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue);
+		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue);
 
 		//运行所有已经超时的需要执行的函数
-		void RunExpired();
+		void runExpired();
 
 		///////////////////////////////线程池相关的操作API///////////////////////////////////
 
@@ -112,37 +112,37 @@ namespace kikilib
 		//1、向数据库写数据，直接将写数据库的函数放入其中
 		//2、从数据库读数据，将读取数据库的函数放入其中，
 		//   然后设置定时器事件，过time时间后检查是否读完
-        void RunInThreadPool(std::function<void()>&& func);
+        void runInThreadPool(std::function<void()>&& func);
 
 		////////////////////////////socket缓冲区相关的操作API/////////////////////////////////
 
 		//向socket写一个int数字num
-		bool WriteInt32(int num);
+		bool sendInt32(int num);
 		
 		//向socket写内容content
-		bool WriteBuf(std::string& content);
-		bool WriteBuf(std::string&& content);
+		bool sendContent(std::string& content);
+		bool sendContent(std::string&& content);
 
 		//读取一个int，若缓存中没有，则返回false
-		bool ReadInt32(int& res);
+		bool readInt32(int& res);
 
 		//读取长度为len的字符,若没有长度为len的数据，则返回空串
-		std::string ReadBuf(size_t len);
+		std::string readBuf(size_t len);
 
 		//读取长度为len的数据，若没有长度为len的数据，则返回false
-		bool ReadBuf(char* buf, size_t len);
+		bool readBuf(char* buf, size_t len);
 
 		//读一行，该行以\r\n结尾,若没有，返回空串
-		std::string ReadLineEndOfRN();
+		std::string readLineEndOfRN();
 
 		//读一行，该行以\r结尾,若没有，返回空串
-		std::string ReadLineEndOfR();
+		std::string readLineEndOfR();
 
 		//读一行，该行以\n结尾,若没有，返回空串
-		std::string ReadLineEndOfN();
+		std::string readLineEndOfN();
 
 		//读取缓冲区中的所有字符
-		std::string ReadAll();
+		std::string readAll();
 
 		////////////////////////////////////////////////用户API/////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,28 +150,28 @@ namespace kikilib
 
 		//////////////////////////运行接口,需要用户子类自己实现///////////////////////////
 		//新的连接到来时执行的函数，实际会在insert进EventManager时调用
-		virtual void HandleConnectionEvent() {};
+		virtual void handleConnectionEvent() {};
 
 		//可读事件到来时执行的函数
-		virtual void HandleReadEvent() {};
+		virtual void handleReadEvent() {};
 
 		//错误事件到来时执行的函数
-		virtual void HandleErrEvent() {};
+		virtual void handleErrEvent() {};
 
 		//连接关闭时执行的回调函数
-		virtual void HandleCloseEvent() {};
+		virtual void handleCloseEvent() {};
 
 		///////////////////////////供EventMaster和EventManager调用////////////////////////////////
 
 		//设置事件状态，如可读，可写，错误
-		void SetEventState(int state) { _eventState = state; };
+		void setEventState(int state) { _eventState = state; };
 
 		//EventManager会调用该函数根据事件类型处理事件
 		//用户可以重写，但不建议
-		virtual void HandleEvent();
+		virtual void handleEvent();
 
 		//连接是否已经关闭
-		bool IsConnected() { return _isConnected; }
+		bool isConnected() { return _isConnected; }
 
 	public:
 		EventService(Socket& sock, EventManager* evMgr, int interestEvent = EPOLLIN | EPOLLPRI | EPOLLRDHUP);
@@ -183,7 +183,7 @@ namespace kikilib
 
 	private:
 		//写事件
-		void HandleWriteEvent();
+		void handleWriteEvent();
 
 		//关注的事件，即该EventBody在epoll中会被什么事件触发
 		int _interestEvent;

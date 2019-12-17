@@ -26,15 +26,15 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(Timer);
 
 		//获取所有已经超时的需要执行的函数
-		void GetExpiredTask(std::vector<std::function<void()>> &tasks);
+		void getExpiredTask(std::vector<std::function<void()>> &tasks);
 
 		//在time时刻需要执行函数cb
-		void RunAt(Time time, std::function<void()>& cb);
-		void RunAt(Time time, std::function<void()>&& cb);
+		void runAt(Time time, std::function<void()>& cb);
+		void runAt(Time time, std::function<void()>&& cb);
 
 	private:
 		//给timefd重新设置时间，time是绝对时间
-		void ResetTimeOfTimefd(Time time);
+		void resetTimeOfTimefd(Time time);
 
 		Socket _timeSock;
 

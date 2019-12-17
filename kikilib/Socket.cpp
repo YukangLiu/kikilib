@@ -14,7 +14,7 @@ using namespace kikilib;
 Socket::~Socket()
 {
 	--(*_pRef);
-	if (!(*_pRef) && IsUseful())
+	if (!(*_pRef) && isUseful())
 	{
 		if (::close(_sockfd) < 0)
 		{
@@ -28,17 +28,17 @@ Socket::~Socket()
 	}
 }
 
-bool Socket::GetSocketOpt(struct tcp_info* tcpi) const
+bool Socket::getSocketOpt(struct tcp_info* tcpi) const
 {
 	socklen_t len = sizeof(*tcpi);
 	memset(tcpi, 0, sizeof(*tcpi));
 	return ::getsockopt(_sockfd, SOL_TCP, TCP_INFO, tcpi, &len) == 0;
 }
 
-bool Socket::GetSocketOptString(char* buf, int len) const
+bool Socket::getSocketOptString(char* buf, int len) const
 {
 	struct tcp_info tcpi;
-	bool ok = GetSocketOpt(&tcpi);
+	bool ok = getSocketOpt(&tcpi);
 	if (ok)
 	{
 		snprintf(buf, len, "unrecovered=%u "
@@ -61,16 +61,16 @@ bool Socket::GetSocketOptString(char* buf, int len) const
 	return ok;
 }
 
-std::string Socket::GetSocketOptString() const
+std::string Socket::getSocketOptString() const
 {
 	char buf[1024];
 	buf[0] = '\0';
-	GetSocketOptString(buf, sizeof buf);
+	getSocketOptString(buf, sizeof buf);
 	return std::string(buf);
 }
 
 
-int Socket::Bind(int port)
+int Socket::bind(int port)
 {
 	_port = port;
 	struct sockaddr_in serv;
@@ -86,7 +86,7 @@ int Socket::Bind(int port)
 	return ret;
 }
 
-int Socket::Listen()
+int Socket::listen()
 {
 	int ret = ::listen(_sockfd, Parameter::backLog);
 	if (ret < 0)
@@ -96,7 +96,7 @@ int Socket::Listen()
 	return ret;
 }
 
-Socket Socket::Accept()
+Socket Socket::accept()
 {
 	int connfd = -1;
 	struct sockaddr_in client;
@@ -120,19 +120,19 @@ Socket Socket::Accept()
 }
 
 //从socket中读数据
-ssize_t Socket::Read(void* buf, size_t count)
+ssize_t Socket::read(void* buf, size_t count)
 {
 	return ::read(_sockfd, buf, count);
 }
 
 //往socket中写数据
-ssize_t Socket::Send(const void* buf, size_t count)
+ssize_t Socket::send(const void* buf, size_t count)
 {
 	//忽略SIGPIPE信号
 	return ::send(_sockfd, buf, count, MSG_NOSIGNAL);
 }
 
-int Socket::ShutdownWrite()
+int Socket::shutdownWrite()
 {
 	int ret = ::shutdown(_sockfd, SHUT_WR);
 	if (ret < 0)
@@ -142,7 +142,7 @@ int Socket::ShutdownWrite()
 	return ret;
 }
 
-int Socket::SetTcpNoDelay(bool on)
+int Socket::setTcpNoDelay(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, IPPROTO_TCP, TCP_NODELAY,
@@ -154,7 +154,7 @@ int Socket::SetTcpNoDelay(bool on)
 	return ret;
 }
 
-int Socket::SetReuseAddr(bool on)
+int Socket::setReuseAddr(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR,
@@ -166,7 +166,7 @@ int Socket::SetReuseAddr(bool on)
 	return ret;
 }
 
-int Socket::SetReusePort(bool on)
+int Socket::setReusePort(bool on)
 {
 	int ret = -1;
 #ifdef SO_REUSEPORT
@@ -186,7 +186,7 @@ int Socket::SetReusePort(bool on)
 	return ret;
 }
 
-int Socket::SetKeepAlive(bool on)
+int Socket::setKeepAlive(bool on)
 {
 	int optval = on ? 1 : 0;
 	int ret = ::setsockopt(_sockfd, SOL_SOCKET, SO_KEEPALIVE,
@@ -199,7 +199,7 @@ int Socket::SetKeepAlive(bool on)
 }
 
 //设置socket为非阻塞的
-int Socket::SetNonBolckSocket()
+int Socket::setNonBolckSocket()
 {
 	auto flags = fcntl(_sockfd, F_GETFL, 0);
 	int ret = fcntl(_sockfd, F_SETFL, flags | O_NONBLOCK);   //设置成非阻塞模式
@@ -211,7 +211,7 @@ int Socket::SetNonBolckSocket()
 }
 
 //设置socket为阻塞的
-int Socket::SetBlockSocket()
+int Socket::setBlockSocket()
 {
 	auto flags = fcntl(_sockfd, F_GETFL, 0);
 	int ret = fcntl(_sockfd, F_SETFL, flags & ~O_NONBLOCK);    //设置成阻塞模式；

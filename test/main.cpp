@@ -17,7 +17,7 @@ int main()
 {
 	int port = DecodeConfigFile();
 	kikilib::EventMaster<KikitestService> evMaster;
-	evMaster.Init(1, port);
-	evMaster.Loop();
+	evMaster.init(1, port);
+	evMaster.loop();
 	return 0;
 }

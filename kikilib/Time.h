@@ -9,7 +9,7 @@ struct timespec;
 namespace kikilib
 {
 	//一年中每个月的天数，非闰年
-	const char Days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	const char days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 	//时间类，单位：微秒us
 	class Time
@@ -40,12 +40,12 @@ namespace kikilib
 		//static time_t GetRoughTime() { return _roughTime; }
 
 		//根据距离1970-01-01 00:00:00的秒数和与秒数所属时区的时差计算当前时区的时间
-		static void ToLocalTime(time_t second, long timezone, struct tm* tm_time);
+		static void toLocalTime(time_t second, long timezone, struct tm* tm_time);
 
 		//到现在的时间
-		struct timespec TimeIntervalFromNow();
+		struct timespec timeIntervalFromNow();
 
-		int64_t GetTimeVal() { return _timeVal; }
+		int64_t getTimeVal() { return _timeVal; }
 
 	private:
 		int64_t _timeVal;
@@ -56,27 +56,27 @@ namespace kikilib
 
 	inline bool operator < (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() < rhs.GetTimeVal();
+		return lhs.getTimeVal() < rhs.getTimeVal();
 	}
 
 	inline bool operator <= (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() <= rhs.GetTimeVal();
+		return lhs.getTimeVal() <= rhs.getTimeVal();
 	}
 
 	inline bool operator > (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() > rhs.GetTimeVal();
+		return lhs.getTimeVal() > rhs.getTimeVal();
 	}
 
 	inline bool operator >= (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() >= rhs.GetTimeVal();
+		return lhs.getTimeVal() >= rhs.getTimeVal();
 	}
 
 	inline bool operator == (Time lhs, Time rhs)
 	{
-		return lhs.GetTimeVal() == rhs.GetTimeVal();
+		return lhs.getTimeVal() == rhs.getTimeVal();
 	}
 
 }

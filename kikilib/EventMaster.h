@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "Parameter.h"
 
-#include <fcntl.h>
+//#include <fcntl.h>
 #include <vector>
 //#include <thread>
 
@@ -42,7 +42,7 @@ namespace kikilib
 		//创建多个EventManager线程
 		//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
 		//listenPort : 要在哪个端口上循环listen
-		bool Init(int mgrCnt, int listenPort);
+		bool init(int mgrCnt, int listenPort);
 
 		//设置EventManager区域唯一的上下文内容
 		//idx为要设置几号EventManager的上下文内容
@@ -51,12 +51,12 @@ namespace kikilib
 		//每个EventManager中所有的事件需要共享一个LRU缓冲区的时候而这个LRU队列
 		//又是属于每个EventManager而非全局的，那么就需要设置这个上下文指针了。
 		//EventManager不负责管理该对象的生命，默认为nullptr
-		bool SetEvMgrCtx(int idx, void* ctx);
+		bool setEvMgrCtx(int idx, void* ctx);
 
 		//循环accept
-		void Loop();
+		void loop();
 
-		void Stop() { _stop = true; }
+		void stop() { _stop = true; }
 
 	private:
 
@@ -91,7 +91,7 @@ namespace kikilib
 	template<class ConcreteEventService>
 	inline EventMaster<ConcreteEventService>::~EventMaster()
 	{
-		Stop();
+		stop();
 		if (_pThreadPool)
 		{
 			delete _pThreadPool;
@@ -103,20 +103,20 @@ namespace kikilib
 	//mgrCnt : 创建事件管理器的数量，一个事件管理器对应一个线程
 	//listenPort : 要在哪个端口上循环listen
 	template<class ConcreteEventService>
-	inline bool EventMaster<ConcreteEventService>::Init(int mgrCnt, int listenPort)
+	inline bool EventMaster<ConcreteEventService>::init(int mgrCnt, int listenPort)
 	{
 		//初始化监听套接字
-		if (_listener.IsUseful())
+		if (_listener.isUseful())
 		{
-			_listener.SetTcpNoDelay(Parameter::isNoDelay);
-			_listener.SetReuseAddr(true);
-			_listener.SetReusePort(true);
-			_listener.SetBlockSocket();
-			if (_listener.Bind(listenPort) < 0)
+			_listener.setTcpNoDelay(Parameter::isNoDelay);
+			_listener.setReuseAddr(true);
+			_listener.setReusePort(true);
+			_listener.setBlockSocket();
+			if (_listener.bind(listenPort) < 0)
 			{
 				return false;
 			}
-			_listener.Listen();
+			_listener.listen();
 		}
 		else
 		{
@@ -125,13 +125,13 @@ namespace kikilib
 		}
 
 		//初始化负载均衡器
-		_mgrSelector.SetManagerCnt(mgrCnt);
+		_mgrSelector.setManagerCnt(mgrCnt);
 
 		//初始化EventManager
 		for (int i = 0; i < mgrCnt; ++i)
 		{
 			_evMgrs.emplace_back(std::move(new EventManager(i, _pThreadPool)));
-			if (!_evMgrs.back()->Loop())
+			if (!_evMgrs.back()->loop())
 			{
 				return false;
 				RecordLog("eventManager loop failed!");
@@ -146,36 +146,36 @@ namespace kikilib
 	//idx为要设置几号EventManager的上下文内容
 	//ctx为要设置的EventManager上下文内容
 	template<class ConcreteEventService>
-	inline bool EventMaster<ConcreteEventService>::SetEvMgrCtx(int idx, void* ctx)
+	inline bool EventMaster<ConcreteEventService>::setEvMgrCtx(int idx, void* ctx)
 	{
 		if (idx >= _evMgrs.size() || idx < 0)
 		{
 			return false;
 		}
-		_evMgrs[idx]->SetEvMgrCtx(ctx);
+		_evMgrs[idx]->setEvMgrCtx(ctx);
 		return true;
 	}
 
 	//循环accept
 	template<class ConcreteEventService>
-	inline void EventMaster<ConcreteEventService>::Loop()
+	inline void EventMaster<ConcreteEventService>::loop()
 	{
 		//一直accept，因为只有一个线程在accept，所以没有惊群问题
 		while (!_stop)
 		{
-			Socket conn(_listener.Accept());
-			if (!conn.IsUseful() || conn.fd() > Parameter::maxEventServiceCnt)
+			Socket conn(_listener.accept());
+			if (!conn.isUseful() || conn.fd() > Parameter::maxEventServiceCnt)
 			{
 				continue;
 			}
 
-			conn.SetTcpNoDelay(Parameter::isNoDelay);
-			RecordLog("accept a new usr ,ip : " + conn.GetIp());
-			int nextMgrIdx = _mgrSelector.Next();
+			conn.setTcpNoDelay(Parameter::isNoDelay);
+			RecordLog("accept a new usr ,ip : " + conn.ip());
+			int nextMgrIdx = _mgrSelector.next();
 			EventService* ev = _pEvServeFac.CreateEventService(conn, _evMgrs[nextMgrIdx]);
 			if (ev)
 			{
-				_evMgrs[nextMgrIdx]->Insert(ev);
+				_evMgrs[nextMgrIdx]->insertEv(ev);
 			}
 			else
 			{

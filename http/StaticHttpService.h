@@ -14,18 +14,18 @@ public:
 	~StaticHttpService()
 	{ };
 
-	virtual void HandleReadEvent();
+	virtual void handleReadEvent();
 
-	virtual void HandleErrEvent();
+	virtual void handleErrEvent();
 
 private:
-	void SendUnImpletement();
+	void sendUnImpletement();
 
-	void SendNotFount();
+	void sendNotFount();
 
-	void SendHeader(std::string& path);
+	void sendHeader(std::string& path);
 
-	void SendBody(FILE* fp);
+	void sendBody(FILE* fp);
 
-	void SendFile(std::string& path);
+	void sendFile(std::string& path);
 };

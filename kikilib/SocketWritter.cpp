@@ -21,21 +21,21 @@ SocketWtitter::SocketWtitter(Socket&& sock, EventService* pEvServe)
 }
 
 //写一个int
-bool SocketWtitter::SendInt32(int res)
+bool SocketWtitter::sendInt32(int res)
 {
-	return Send(std::move(std::to_string(res)));
+	return send(std::move(std::to_string(res)));
 }
 
 //写一个字符串
-bool SocketWtitter::Send(std::string& str)
+bool SocketWtitter::send(std::string& str)
 {
-	return Send(std::move(str));//目前操作是一样的，并没有转移指针
+	return send(std::move(str));//目前操作是一样的，并没有转移指针
 }
 
 //写一个字符串
-bool SocketWtitter::Send(std::string&& str)
+bool SocketWtitter::send(std::string&& str)
 {
-	WriteBufToSock();
+	writeBufToSock();
 	if (_rightBorder - _leftBorder)
 	{//一次没写完
 		if (_buffer.size() - _rightBorder < str.size())
@@ -46,7 +46,7 @@ bool SocketWtitter::Send(std::string&& str)
 	}
 	else
 	{
-		int ret = static_cast<int>(_sock.Send(&(*str.begin()), str.size()));
+		int ret = static_cast<int>(_sock.send(&(*str.begin()), str.size()));
 		if (ret < 0)
 		{//error
 			RecordLog(ERROR_DATA_INFORMATION, "write socket error!");
@@ -54,7 +54,7 @@ bool SocketWtitter::Send(std::string&& str)
 		}
 		else if (ret < static_cast<int>(str.size()))
 		{//内容没发完
-			_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() | EPOLLOUT);
+			_pEvServe->setInteresEv(_pEvServe->getInteresEv() | EPOLLOUT);
 			auto leftLen = str.size() - static_cast<size_t>(ret);
 			if (_buffer.size() - _rightBorder < leftLen)
 			{
@@ -71,14 +71,14 @@ bool SocketWtitter::Send(std::string&& str)
 }
 
 //将缓冲区内容写进socket中
-void SocketWtitter::WriteBufToSock()
+void SocketWtitter::writeBufToSock()
 {
 	int curLen = _rightBorder - _leftBorder;
 	if (!curLen)
 	{//没有东西写了，取消关注读事件了
 		return;
 	}
-	int ret = static_cast<int>(_sock.Send(&(_buffer[_leftBorder]), curLen));
+	int ret = static_cast<int>(_sock.send(&(_buffer[_leftBorder]), curLen));
 	if (ret < 0)
 	{
 		RecordLog(ERROR_DATA_INFORMATION, "write socket error!");
@@ -86,7 +86,7 @@ void SocketWtitter::WriteBufToSock()
 	}
 	else if (ret < curLen)
 	{//没写完
-		_pEvServe->SetInteresEv(_pEvServe->GetInteresEv() | EPOLLOUT);
+		_pEvServe->setInteresEv(_pEvServe->getInteresEv() | EPOLLOUT);
 	}
 	_leftBorder += ret;
 

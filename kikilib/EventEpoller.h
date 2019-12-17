@@ -28,23 +28,23 @@ namespace kikilib
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventEpoller);
 
 		//要使用EventEpoller必须调用该函数初始化，失败则返回false
-		bool Init();
+		bool init();
 
 		//修改EventEpoller中的事件
-		void MotifyEv(EventService* evServ);
+		void modifyEv(EventService* evServ);
 
 		//向EventEpoller中添加事件
-		void AddEv(EventService* evServ);
+		void addEv(EventService* evServ);
 
 		//从EventEpoller中移除事件
-		void RemoveEv(EventService* evServ);
+		void removeEv(EventService* evServ);
 
 		//获取被激活的事件服务
-		void GetActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs);
+		void getActEvServ(int timeOutMs, std::vector<EventService*>& activeEvServs);
 
 	private:
 
-		bool IsEpollFdUsefulAndMark();
+		bool isEpollFdUsefulAndMark();
 
 		int _epollFd;
 		std::vector<struct epoll_event> _activeEpollEvents;
