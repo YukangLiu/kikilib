@@ -83,4 +83,4 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 ![qps](https://github.com/YukangLiu/kikilib/raw/master/pic/webbench-c10000-t600.png)
 <br>
 <br>
-附：有什么需求或者bug，建议，问题，都可以加我微信liuyukang315讨论交流，谢谢。<br>
+附：有什么需求或者bug，建议，问题，都可以邮件 390161495@qq.com 讨论交流，谢谢。<br>
