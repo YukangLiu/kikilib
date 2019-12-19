@@ -79,7 +79,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 7、并发度<br>
 	测试环境：4核CPU3.70GHz，8G内存3200MHz<br>
 	使用webbench对本机http(读取指定文件发送然后关闭连接)进行了简单的压力测试，QPS两万多：<br>
-	![qps](https://github.com/YukangLiu/kikilib/blob/master/pic/webbench-c10000-t600.png)
+	![qps](https://raw.githubusercontent.com/YukangLiu/kikilib/master/pic/webbench-c10000-t600.png)
 <br>
 <br>
 附：有什么需求或者bug，建议，问题，都可以加我微信liuyukang315讨论交流，谢谢。<br>
