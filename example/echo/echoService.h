@@ -1,4 +1,3 @@
-#pragma once
 //@Author Liu Yukang 
 #pragma once
 #include "EventService.h"

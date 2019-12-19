@@ -3,7 +3,6 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
 [版本说明](https://github.com/YukangLiu/kikilib/blob/master/Version.md)<br>
 <br>
-<br>
 1、定位：<br>
 	kikilib网络库是轻量，高性能，纯c++11，更符合OOP语言特点且易用的一个Linux服务器网络库，它没有繁琐的回调函数设置和上下文指针机制，这让它的使用和对象的生命期管理都变得更加简单。<br>
 <br>
@@ -18,19 +17,24 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
 3、文件：<br>
 	kikilib：网络库的源代码。<br>
-	http：使用kikilib网络库实现的一个简单的静态网页服务器。<br>
-	chatroom：使用kikilib网络库实现的一个简单的聊天室服务器（可以认为是广播协议）。<br>
-	test：测试工程，加上http和chatroom将所有函数都使用上了。<br>
+	old_version：旧版本源码。<br>
+	example:一些示例，包含：<br>
+		echo: 回显服务器。<br>
+		http：使用kikilib网络库实现的一个简单的静态网页服务器。<br>
+		chatroom：使用kikilib网络库实现的一个简单的聊天室服务器（可以认为是广播协议）。<br>
+		test：测试工程，加上http和chatroom将所有函数都使用上了。<br>
 <br>
 <br>
 4、编译：<br>
-	kikilib：运行makekikilib.sh脚本即可。<br>
-	http：运行makekikihttp.sh脚本即可。<br>
-	chatroom：运行makekikichatroom.sh脚本即可。<br>
+	kikilib：make即可,会生成libkikilib.so。<br>
+	echo：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
+	http：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
+	chatroom：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
+	test：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
 <br>
 <br>
 5、http及chatroom使用：<br>
-	http：编译后运行即可。测试站点：http://122.51.68.134/<br>
+	http：编译后运行即可。测试站点：www.liuyukang.com<br>
 	chatroom：编译后，修改config.txt中的端口号为监听的端口号，运行即可。文件夹中提供一个client的windows下的执行文件，修改clientconfig.txt为服务器的ip和端口号运行即可。<br>
 <br>
 <br>
@@ -43,14 +47,39 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	3、提供定时器相关的操作API<br>
 	4、提供线程池工具的操作API<br>
 	5、提供socket缓冲区的读写操作API<br>
+	以echo服务器为例：<br>
+```
+	class EchoService : public kikilib::EventService
+	{
+	public:
+		EchoService(kikilib::Socket sock, kikilib::EventManager* evMgr)
+			: EventService(sock, evMgr)
+		{ };
+
+		~EchoService() {};
+
+		virtual void handleReadEvent()
+		{
+			std::string str = readAll();
+			sendContent(std::move(str));
+			forceClose();
+		};
+	};
+
+	int main()
+	{
+		kikilib::EventMaster<EchoService> evMaster;
+		evMaster.init(4, 80);
+		evMaster.loop();
+		return 0;
+	}
+```
 <br>
 <br>
 7、并发度<br>
 	测试环境：4核CPU3.70GHz，8G内存3200MHz<br>
-	使用webbench对本机http进行了简单的压力测试，QPS两万多：<br>
-	10000 clients, running 600 sec.<br>
-	Speed=1338931 pages/min, -568964 bytes/sec.<br>
-	Requests: 13389316 susceed, 0 failed.<br>
+	使用webbench对本机http(读取指定文件发送然后关闭连接)进行了简单的压力测试，QPS两万多：<br>
+	![qps](https://github.com/YukangLiu/kikilib/tree/master/pic/webbench-c10000-t600.png)
 <br>
 <br>
 附：有什么需求或者bug，建议，问题，都可以加我微信liuyukang315讨论交流，谢谢。<br>
