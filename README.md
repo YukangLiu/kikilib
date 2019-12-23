@@ -27,10 +27,10 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 <br>
 4、编译：<br>
 	kikilib：make即可,会生成libkikilib.so。<br>
-	echo：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
-	http：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
-	chatroom：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
-	test：拷贝libkikilib.so到当前文件夹，然后make即可。<br>
+	echo：make了kikilib之后进入该文件夹make即可。<br>
+	http：make了kikilib之后进入该文件夹make即可。<br>
+	chatroom：make了kikilib之后进入该文件夹make即可。<br>
+	test：make了kikilib之后进入该文件夹make即可。<br>
 <br>
 <br>
 5、http及chatroom使用：<br>

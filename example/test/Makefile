@@ -1,6 +1,6 @@
 
 TARGET =kikitest
-CC =g++ -L. -g -O3 -Wall -std=c++11
+CC =g++ -L../../kikilib -g -O3 -Wall -std=c++11
 INCLUDE =$(shell find ./ -name "*.h")
 SOURCE =$(shell find ./ -name "*.cpp")
 OBJS =$(SOURCE:%.cpp=%.o)
