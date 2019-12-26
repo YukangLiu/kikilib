@@ -108,19 +108,24 @@ namespace kikilib
 		Timer* _pTimer;
 
 		//保证eventSet的线程安全
-		std::mutex _eventSetMutex;
+		std::atomic_int _evSetSemaphore;
+		//std::mutex _eventSetMutex;
 
 		//保证timer线程安全
-		std::mutex _timerMutex;
+		std::atomic_int _timerSemaphore;
+		//std::mutex _timerMutex;
 
 		//保证_actTimerTasks使用的线程安全
-		std::mutex _timerQueMutex;
+		std::atomic_int _timerQueSemaphore;
+		//std::mutex _timerQueMutex;
 
 		//保证_removedEv事件列表的线程安全
-		std::mutex _removedEvMutex;
+		std::atomic_int _removedEvSemaphore;
+		//std::mutex _removedEvMutex;
 
 		//保证设置上下文指针的线程安全
-		std::mutex _ctxMutex;
+		std::atomic_int _ctxSemaphore;
+		//std::mutex _ctxMutex;
 
 		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正delete
 		std::vector<EventService*> _removedEv;

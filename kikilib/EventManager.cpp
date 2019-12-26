@@ -5,6 +5,7 @@
 #include "TimerEventService.h"
 #include "Timer.h"
 #include "ThreadPool.h"
+#include "spinlock_guard.h"
 
 #include <sys/timerfd.h>
 #include <sys/epoll.h>
@@ -13,7 +14,9 @@
 using namespace kikilib;
 
 EventManager::EventManager(int idx, ThreadPool* threadPool) 
-	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr), _pCtx(nullptr)
+	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr),
+	_evSetSemaphore(1), _timerSemaphore(1), _timerQueSemaphore(1), _removedEvSemaphore(1),
+	_ctxSemaphore(1), _pCtx(nullptr)
 { }
 
 EventManager::~EventManager()
@@ -107,18 +110,22 @@ bool EventManager::loop()
 					}
 				}
 				//处理不再关注的事件
-				for (auto unusedEv : this->_removedEv)
 				{
-					//从监听事件中移除
-					this->_epoller.removeEv(unusedEv);
-					//close这个fd
-					delete unusedEv;
+					SpinlockGuard lock(_removedEvSemaphore);
+
+					for (auto unusedEv : this->_removedEv)
+					{
+						//从监听事件中移除
+						this->_epoller.removeEv(unusedEv);
+						//close这个fd
+						delete unusedEv;
+					}
+					if (this->_removedEv.size())
+					{
+						this->_removedEv.clear();
+					}
 				}
-				if(this->_removedEv.size())
-                {
-                    std::lock_guard<std::mutex> lock(_removedEvMutex);
-                    this->_removedEv.clear();
-                }
+				
 			}
 		}
 		);
@@ -146,7 +153,7 @@ void EventManager::insertEv(EventService* ev)
 	{
 
 		{
-			std::lock_guard<std::mutex> lock(_eventSetMutex);
+			SpinlockGuard lock(_evSetSemaphore);
 			_eventSet.insert(ev);
 		}
 
@@ -164,7 +171,7 @@ void EventManager::removeEv(EventService* ev)
 	}
 	
 	{//从映射表中删除事件
-		std::lock_guard<std::mutex> lock(_eventSetMutex);
+		SpinlockGuard lock(_evSetSemaphore);
 		auto it = _eventSet.find(ev);
 		if (it != _eventSet.end())
 		{
@@ -173,7 +180,7 @@ void EventManager::removeEv(EventService* ev)
 	}
 	
 	{//放入被移除事件列表
-		std::lock_guard<std::mutex> lock(_removedEvMutex);
+		SpinlockGuard lock(_removedEvSemaphore);
 		_removedEv.push_back(ev);
 	}
 }
@@ -188,7 +195,7 @@ void EventManager::modifyEv(EventService* ev)
 	bool isNewEv = false;
 
 	{
-		std::lock_guard<std::mutex> lock(_eventSetMutex);
+		SpinlockGuard lock(_evSetSemaphore);
 		if (_eventSet.find(ev) == _eventSet.end())
 		{
 			isNewEv = true;
@@ -207,13 +214,13 @@ void EventManager::modifyEv(EventService* ev)
 
 void EventManager::runAt(Time time, std::function<void()>&& timerCb)
 {
-	std::lock_guard<std::mutex> lock(_timerMutex);
+	SpinlockGuard lock(_timerSemaphore);
 	_pTimer->runAt(time, std::move(timerCb));
 }
 
 void EventManager::runAt(Time time, std::function<void()>& timerCb)
 {
-	std::lock_guard<std::mutex> lock(_timerMutex);
+	SpinlockGuard lock(_timerSemaphore);
 	_pTimer->runAt(time, timerCb);
 }
 
@@ -223,7 +230,7 @@ void EventManager::runAfter(Time time, std::function<void()>&& timerCb)
 	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
-		std::lock_guard<std::mutex> lock(_timerMutex);
+		SpinlockGuard lock(_timerSemaphore);
 		_pTimer->runAt(runTime, std::move(timerCb));
 	}
 }
@@ -234,7 +241,7 @@ void EventManager::runAfter(Time time, std::function<void()>& timerCb)
 	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
-		std::lock_guard<std::mutex> lock(_timerMutex);
+		SpinlockGuard lock(_timerSemaphore);
 		_pTimer->runAt(runTime, timerCb);
 	}
 }
@@ -275,10 +282,10 @@ void EventManager::runEveryUntil(Time time, std::function<void()> timerCb, std::
 //运行所有已经超时的需要执行的函数
 void EventManager::runExpired()
 {
-	std::lock_guard<std::mutex> lock(_timerQueMutex);
+	SpinlockGuard lock(_timerQueSemaphore);
 
 	{
-		std::lock_guard<std::mutex> lock(_timerMutex);
+		SpinlockGuard lock(_timerSemaphore);
 		_pTimer->getExpiredTask(_actTimerTasks);
 	}
 	
@@ -299,7 +306,7 @@ void EventManager::runInThreadPool(std::function<void()>&& func)
 //设置EventManager区域唯一的上下文内容
 void EventManager::setEvMgrCtx(void* ctx)
 {
-	std::lock_guard<std::mutex> lock(_ctxMutex);
+	SpinlockGuard lock(_ctxSemaphore);
 	_pCtx = ctx;
 }
 
