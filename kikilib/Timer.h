@@ -39,7 +39,7 @@ namespace kikilib
 		Socket _timeSock;
 
 		//定时器回调函数集合
-		std::multimap<Time, std::function<void()>> _timerCbMap;
+		std::map<Time, std::function<void()>> _timerCbMap;
 	};
 
 }
