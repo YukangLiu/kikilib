@@ -115,7 +115,7 @@ bool EventManager::loop()
 					for (auto unusedEv : _removedEv)
 					{
 						//从监听事件中移除
-						//this->_epoller.removeEv(unusedEv);
+						this->_epoller.removeEv(unusedEv);
 						
 						{//close这个fd
 							SpinlockGuard poolLock(_evPoolSpLck);

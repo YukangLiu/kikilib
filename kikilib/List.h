@@ -1,6 +1,7 @@
 //@Author Liu Yukang 
 #pragma once
 #include <memory>
+#include "ObjPool.h"
 
 namespace kikilib
 {
@@ -104,13 +105,15 @@ namespace kikilib
 			++_size;
 			if (!_tail)
 			{
-				auto tmp = new ListNode<ValType>(val);
+				//auto tmp = new ListNode<ValType>(val);
+				auto tmp = _listNodePool.New(val);
 				_head = tmp;
 				_tail = tmp;
 			}
 			else
 			{
-				_tail->next = new ListNode<ValType>(val);
+				//_tail->next = new ListNode<ValType>(val);
+				_tail->next = _listNodePool.New(val);
 				_tail = _tail->next;
 			}
 		};
@@ -134,7 +137,8 @@ namespace kikilib
 				{
 					_head = _head->next;
 				}
-				delete tmp;
+				//delete tmp;
+				_listNodePool.Delete(tmp);
 			}
 		};
 
@@ -195,5 +199,6 @@ namespace kikilib
 		ListNode<ValType>* _head;
 		ListNode<ValType>* _tail;
 		long long _size;
+		ObjPool<ListNode<ValType>> _listNodePool;
 	};
 }
