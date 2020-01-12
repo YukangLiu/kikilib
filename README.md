@@ -25,7 +25,13 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 		test：测试工程，加上http和chatroom将所有函数都使用上了。<br>
 <br>
 <br>
-4、编译：<br>
+4、类图：<br>
+	用户继承EventService类实现其中的UsrImplEventService即可。<br>
+	
+![uml](https://github.com/YukangLiu/kikilib/raw/master/pic/kikilibUMLpic.png)
+<br>
+<br>
+5、编译：<br>
 	kikilib：make即可,会生成libkikilib.so。<br>
 	echo：make了kikilib之后进入该文件夹make即可。<br>
 	http：make了kikilib之后进入该文件夹make即可。<br>
@@ -33,12 +39,12 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 	test：make了kikilib之后进入该文件夹make即可。<br>
 <br>
 <br>
-5、http及chatroom使用：<br>
+6、http及chatroom使用：<br>
 	http：编译后运行即可。测试站点：www.liuyukang.com<br>
 	chatroom：编译后，修改config.txt中的端口号为监听的端口号，运行即可。文件夹中提供一个client的windows下的执行文件，修改clientconfig.txt为服务器的ip和端口号运行即可。<br>
 <br>
 <br>
-6、kikilib网络库使用：<br>
+7、kikilib网络库使用：<br>
 	1、继承EventService类（专属于一个socket，专注于服务该socket上发生的事件），实现其中的HandleConnectionEvent(),HandleReadEvent(),HandleErrEvent,HandleCloseEvent()函数即可，可自定义自己的私有成员，代替了大多数网络库中的context上下文指针，生命器管理也更容易。<br>
 	2、将具体的EventService类型放在EventMaster模板中，服务器即可运转，每有一个新的连接到来，EventMaster就会为新的连接创建一个该事件服务对象。<br>
 	另外，网络库的大部分API都在EventService类中，这让使用变得更加方便，提供以下API：<br>
@@ -76,11 +82,14 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 ```
 <br>
 <br>
-7、并发度<br>
+8、并发度<br>
 	测试环境：4核CPU3.70GHz，8G内存3200MHz<br>
 	使用webbench对本机http(读取指定文件发送然后关闭连接)进行了简单的压力测试，QPS两万多：<br>
 
 ![qps](https://github.com/YukangLiu/kikilib/raw/master/pic/webbench-c10000-t600.png)
 <br>
+	使用webbench对本机echo进行了简单的压力测试，QPS四万左右：<br>
+	
+![echo_qps](https://github.com/YukangLiu/kikilib/raw/master/pic/echo-webbench-c15000-t10.png)
 <br>
 附：有什么需求或者bug，建议，问题，都可以邮件 390161495@qq.com 讨论交流，谢谢。<br>
