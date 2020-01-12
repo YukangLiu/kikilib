@@ -13,10 +13,9 @@
 
 using namespace kikilib;
 
-EventManager::EventManager(int idx, ThreadPool* threadPool) 
-	: _idx(idx), _quit(false), _pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr),
-	_evSetSemaphore(1), _timerSemaphore(1), _timerQueSemaphore(1), _removedEvSemaphore(1),
-	_ctxSemaphore(1), _pCtx(nullptr)
+EventManager::EventManager(int idx, EventServicePool* evServePool, ThreadPool* threadPool)
+	: _idx(idx), _quit(false), _pEvServePool(evServePool),
+	_pThreadPool(threadPool),  _pLooper(nullptr), _pTimer(nullptr), _pCtx(nullptr)
 { }
 
 EventManager::~EventManager()
@@ -71,58 +70,61 @@ bool EventManager::loop()
 	_pLooper = new std::thread(
 		[this]
 		{
-			while (!this->_quit)
+			while (!_quit)
 			{
 				//清空所有列表
-				if(this->_actEvServs.size())
+				if(_actEvServs.size())
                 {
-                    this->_actEvServs.clear();
+                   _actEvServs.clear();
                 }
 				for (int i = 0; i < EVENT_PRIORITY_TYPE_COUNT; ++i)
 				{
-				    if(this->_priorityEvQue[i].size())
+				    if(_priorityEvQue[i].size())
                     {
-                        this->_priorityEvQue[i].clear();
+                       _priorityEvQue[i].clear();
                     }
 				}
 				//获取活跃事件
-				this->_epoller.getActEvServ(Parameter::epollTimeOutMs, this->_actEvServs);
+				_epoller.getActEvServ(Parameter::epollTimeOutMs, _actEvServs);
 				//每次epoll更新一次服务器大致时间
 				//Time::UpdataRoughTime();
 				//按优先级分队
-				for (auto pEvServ : this->_actEvServs)
+				for (auto pEvServ : _actEvServs)
 				{
 					if (pEvServ->getEventPriority() >= IMMEDIATE_EVENT)
 					{
-						(this->_priorityEvQue[IMMEDIATE_EVENT]).push_back(pEvServ);
+						(_priorityEvQue[IMMEDIATE_EVENT]).push_back(pEvServ);
 					}
 					else
 					{
-						(this->_priorityEvQue[NORMAL_EVENT]).push_back(pEvServ);
+						(_priorityEvQue[NORMAL_EVENT]).push_back(pEvServ);
 					}
 				}
 				//按照优先级处理事件
 				for (int i = 0; i < EVENT_PRIORITY_TYPE_COUNT; ++i)
 				{
-					for (auto evServ : this->_priorityEvQue[i])
+					for (auto evServ : _priorityEvQue[i])
 					{
 						evServ->handleEvent();
 					}
 				}
 				//处理不再关注的事件
 				{
-					SpinlockGuard lock(_removedEvSemaphore);
+					SpinlockGuard lock(_removedEvSpLck);
 
-					for (auto unusedEv : this->_removedEv)
+					for (auto unusedEv : _removedEv)
 					{
 						//从监听事件中移除
-						this->_epoller.removeEv(unusedEv);
-						//close这个fd
-						delete unusedEv;
+						//this->_epoller.removeEv(unusedEv);
+						
+						{//close这个fd
+							SpinlockGuard poolLock(_evPoolSpLck);
+							_pEvServePool->RetrieveEventService(unusedEv);
+						}
 					}
-					if (this->_removedEv.size())
+					if (_removedEv.size())
 					{
-						this->_removedEv.clear();
+						_removedEv.clear();
 					}
 				}
 				
@@ -153,7 +155,7 @@ void EventManager::insertEv(EventService* ev)
 	{
 
 		{
-			SpinlockGuard lock(_evSetSemaphore);
+			SpinlockGuard lock(_evSetSpLck);
 			_eventSet.insert(ev);
 		}
 
@@ -171,7 +173,7 @@ void EventManager::removeEv(EventService* ev)
 	}
 	
 	{//从映射表中删除事件
-		SpinlockGuard lock(_evSetSemaphore);
+		SpinlockGuard lock(_evSetSpLck);
 		auto it = _eventSet.find(ev);
 		if (it != _eventSet.end())
 		{
@@ -180,7 +182,7 @@ void EventManager::removeEv(EventService* ev)
 	}
 	
 	{//放入被移除事件列表
-		SpinlockGuard lock(_removedEvSemaphore);
+		SpinlockGuard lock(_removedEvSpLck);
 		_removedEv.push_back(ev);
 	}
 }
@@ -195,7 +197,7 @@ void EventManager::modifyEv(EventService* ev)
 	bool isNewEv = false;
 
 	{
-		SpinlockGuard lock(_evSetSemaphore);
+		SpinlockGuard lock(_evSetSpLck);
 		if (_eventSet.find(ev) == _eventSet.end())
 		{
 			isNewEv = true;
@@ -214,13 +216,13 @@ void EventManager::modifyEv(EventService* ev)
 
 void EventManager::runAt(Time time, std::function<void()>&& timerCb)
 {
-	SpinlockGuard lock(_timerSemaphore);
+	SpinlockGuard lock(_timerSpLck);
 	_pTimer->runAt(time, std::move(timerCb));
 }
 
 void EventManager::runAt(Time time, std::function<void()>& timerCb)
 {
-	SpinlockGuard lock(_timerSemaphore);
+	SpinlockGuard lock(_timerSpLck);
 	_pTimer->runAt(time, timerCb);
 }
 
@@ -230,7 +232,7 @@ void EventManager::runAfter(Time time, std::function<void()>&& timerCb)
 	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
-		SpinlockGuard lock(_timerSemaphore);
+		SpinlockGuard lock(_timerSpLck);
 		_pTimer->runAt(runTime, std::move(timerCb));
 	}
 }
@@ -241,7 +243,7 @@ void EventManager::runAfter(Time time, std::function<void()>& timerCb)
 	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
 	{
-		SpinlockGuard lock(_timerSemaphore);
+		SpinlockGuard lock(_timerSpLck);
 		_pTimer->runAt(runTime, timerCb);
 	}
 }
@@ -282,10 +284,10 @@ void EventManager::runEveryUntil(Time time, std::function<void()> timerCb, std::
 //运行所有已经超时的需要执行的函数
 void EventManager::runExpired()
 {
-	SpinlockGuard lock(_timerQueSemaphore);
+	SpinlockGuard lock(_timerQueSpLck);
 
 	{
-		SpinlockGuard lock(_timerSemaphore);
+		SpinlockGuard lock(_timerSpLck);
 		_pTimer->getExpiredTask(_actTimerTasks);
 	}
 	
@@ -306,7 +308,7 @@ void EventManager::runInThreadPool(std::function<void()>&& func)
 //设置EventManager区域唯一的上下文内容
 void EventManager::setEvMgrCtx(void* ctx)
 {
-	SpinlockGuard lock(_ctxSemaphore);
+	SpinlockGuard lock(_ctxSpLck);
 	_pCtx = ctx;
 }
 
@@ -319,4 +321,16 @@ void* EventManager::getEvMgrCtx()
 size_t EventManager::eventServeCnt()
 {
 	return _eventSet.size();
+}
+
+EventService* EventManager::CreateEventService(Socket& sock)
+{
+	EventService* ev;
+
+	{
+		SpinlockGuard lock(_evPoolSpLck);
+		ev = _pEvServePool->CreateEventService(sock, this);
+	}
+
+	return ev;
 }

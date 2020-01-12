@@ -2,7 +2,9 @@
 #pragma once
 
 #include "EventEpoller.h"
+#include "EventServicePool.h"
 #include "Time.h"
+#include "spinlock.h"
 #include "utils.h"
 
 #include <set>
@@ -39,10 +41,12 @@ namespace kikilib
 	class EventManager
 	{
 	public:
-		EventManager(int idx, ThreadPool* threadPool);
+		EventManager(int idx, EventServicePool* evServePool, ThreadPool* threadPool);
 		~EventManager();
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(EventManager);
+
+		EventService* CreateEventService(Socket& sock);
 
 		//创建一个线程，然后线程中循环扫描事件
 		bool loop();
@@ -98,6 +102,8 @@ namespace kikilib
 		//退出循环的标志
 		bool _quit;
 
+		EventServicePool* _pEvServePool;
+
 		//线程池，可将函数放入其中异步执行
 		ThreadPool* _pThreadPool;
 
@@ -107,25 +113,23 @@ namespace kikilib
 		//定时器，进行定时事件处理
 		Timer* _pTimer;
 
+		//保证_pEvServePool的线程安全
+		Spinlock _evPoolSpLck;
+
 		//保证eventSet的线程安全
-		std::atomic_int _evSetSemaphore;
-		//std::mutex _eventSetMutex;
+		Spinlock _evSetSpLck;
 
 		//保证timer线程安全
-		std::atomic_int _timerSemaphore;
-		//std::mutex _timerMutex;
+		Spinlock _timerSpLck;
 
 		//保证_actTimerTasks使用的线程安全
-		std::atomic_int _timerQueSemaphore;
-		//std::mutex _timerQueMutex;
+		Spinlock _timerQueSpLck;
 
 		//保证_removedEv事件列表的线程安全
-		std::atomic_int _removedEvSemaphore;
-		//std::mutex _removedEvMutex;
+		Spinlock _removedEvSpLck;
 
 		//保证设置上下文指针的线程安全
-		std::atomic_int _ctxSemaphore;
-		//std::mutex _ctxMutex;
+		Spinlock _ctxSpLck;
 
 		//被移除的事件列表，要移除某一个事件会先放在该列表中，一次循环结束才会真正delete
 		std::vector<EventService*> _removedEv;

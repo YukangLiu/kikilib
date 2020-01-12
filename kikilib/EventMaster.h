@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Socket.h"
-#include "EventServiceFactory.h"
+#include "ConcreteEventServicePool.h"
 #include "ManagerSelector.h"
 #include "EventManager.h"
 
@@ -63,9 +63,6 @@ namespace kikilib
 		bool _stop;
 
 		//std::thread* _acceptor;
-
-		//创建事件服务的工厂
-		EventServiceFactory<ConcreteEventService> _evServeFac;
 
 		//线程池
 		ThreadPool* _pThreadPool;
@@ -132,7 +129,8 @@ namespace kikilib
 		//初始化EventManager
 		for (int i = 0; i < mgrCnt; ++i)
 		{
-			_evMgrs.emplace_back(std::move(new EventManager(i, _pThreadPool)));
+			EventServicePool* pool = new ConcreteEventServicePool<ConcreteEventService>();
+			_evMgrs.emplace_back(std::move(new EventManager(i, pool, _pThreadPool)));
 			if (!_evMgrs.back()->loop())
 			{
 				return false;
@@ -174,7 +172,7 @@ namespace kikilib
 			conn.setTcpNoDelay(Parameter::isNoDelay);
 			RecordLog("accept a new usr ,ip : " + conn.ip());
 			EventManager* pEvMgr = _pMgrSelector->next();
-			EventService* ev = _evServeFac.CreateEventService(conn, pEvMgr);
+			EventService* ev = pEvMgr->CreateEventService(conn);
 			if (ev)
 			{
 				pEvMgr->insertEv(ev);

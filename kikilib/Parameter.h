@@ -54,5 +54,7 @@ namespace kikilib
 		//SocketReader和SocketWritter中的缓冲区，
 		//若已经满了，但是需要读数据，会先扩展buffer的size为当前的bufExpandRatio倍
 		static constexpr double bufExpandRatio = 1.5;
+
+		static constexpr size_t memPoolMallocObjCnt = 40;
 	};
 }

@@ -1,6 +1,6 @@
 //@author Liu Yukang
 #pragma once
-#include <atomic>
+#include "spinlock.h"
 #include "utils.h"
 
 namespace kikilib {
@@ -9,25 +9,21 @@ namespace kikilib {
 	class SpinlockGuard
 	{
 	public:
-		SpinlockGuard(std::atomic_int &sem)
-			: sem_(sem)
+		SpinlockGuard(Spinlock& l)
+			: lock_(l)
 		{
-			int exp = 1;
-			while (!sem_.compare_exchange_strong(exp, 0))
-			{
-				exp = 1;
-			}
+			lock_.lock();
 		}
 
 		~SpinlockGuard()
 		{
-			sem_.store(1);
+			lock_.unlock();
 		}
 
 		DISALLOW_COPY_MOVE_AND_ASSIGN(SpinlockGuard);
 
 	private:
-		std::atomic_int& sem_;
+		Spinlock& lock_;
 
 	};
 
