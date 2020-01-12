@@ -20,7 +20,7 @@ namespace kikilib
 	{
 	public:
 		MemPool()
-			:_freeListHead(nullptr), _mallocTimes(0)
+			:_freeListHead(nullptr), _mallocListHead(nullptr), _mallocTimes(0)
 		{ };
 
 		~MemPool();
