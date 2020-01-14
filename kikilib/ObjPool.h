@@ -76,7 +76,7 @@ namespace kikilib
 	template<class T>
 	inline void ObjPool<T>::Delete_aux(std::false_type, void* obj)
 	{
-		obj->~T();
+		(static_cast<T*>(obj))->~T();
 		_memPool.FreeAMemBlock(obj);
 	}
 	
