@@ -21,7 +21,16 @@ namespace kikilib
 	public:
 		MemPool()
 			:_freeListHead(nullptr), _mallocListHead(nullptr), _mallocTimes(0)
-		{ };
+		{
+			if (objSize < sizeof(MemBlockNode))
+			{
+				objSize_ = sizeof(MemBlockNode);
+			}
+			else
+			{
+				objSize_ = objSize;
+			}
+		};
 
 		~MemPool();
 
@@ -37,6 +46,8 @@ namespace kikilib
 		MemBlockNode* _mallocListHead;
 		//实际malloc的次数
 		size_t _mallocTimes;
+		//每个内存块大小
+		size_t objSize_;
 	};
 
 	template<size_t objSize>
@@ -57,7 +68,7 @@ namespace kikilib
 		if (nullptr == _freeListHead)
 		{
 			size_t mallocCnt = Parameter::memPoolMallocObjCnt + _mallocTimes;
-			void* newMallocBlk = malloc(mallocCnt * objSize + sizeof(MemBlockNode));
+			void* newMallocBlk = malloc(mallocCnt * objSize_ + sizeof(MemBlockNode));
 			MemBlockNode* mallocNode = static_cast<MemBlockNode*>(newMallocBlk);
 			mallocNode->next = _mallocListHead;
 			_mallocListHead = mallocNode;
@@ -67,7 +78,7 @@ namespace kikilib
 				MemBlockNode* newNode = static_cast<MemBlockNode*>(newMallocBlk);
 				newNode->next = _freeListHead;
 				_freeListHead = newNode;
-				newMallocBlk = static_cast<char*>(newMallocBlk) + objSize;
+				newMallocBlk = static_cast<char*>(newMallocBlk) + objSize_;
 			}
 			++_mallocTimes;
 		}

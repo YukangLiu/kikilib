@@ -18,7 +18,7 @@ namespace kikilib
 		template<typename... Args>
 		inline T* New(Args... args);
 
-		inline void Delete(T* obj);
+		inline void Delete(void* obj);
 
 	private:
 		template<typename... Args>
@@ -27,9 +27,9 @@ namespace kikilib
 		template<typename... Args>
 		inline T* New_aux(std::false_type, Args... args);
 
-		inline void Delete_aux(std::true_type, T* obj);
+		inline void Delete_aux(std::true_type, void* obj);
 
-		inline void Delete_aux(std::false_type, T* obj);
+		inline void Delete_aux(std::false_type, void* obj);
 
 		MemPool<sizeof(T)> _memPool;
 
@@ -58,7 +58,7 @@ namespace kikilib
 	}
 
 	template<class T>
-	inline void ObjPool<T>::Delete(T* obj)
+	inline void ObjPool<T>::Delete(void* obj)
 	{
 		if (!obj)
 		{
@@ -68,16 +68,16 @@ namespace kikilib
 	}
 
 	template<class T>
-	inline void ObjPool<T>::Delete_aux(std::true_type, T* obj)
+	inline void ObjPool<T>::Delete_aux(std::true_type, void* obj)
 	{
-		_memPool.FreeAMemBlock(static_cast<void*>(obj));
+		_memPool.FreeAMemBlock(obj);
 	}
 
 	template<class T>
-	inline void ObjPool<T>::Delete_aux(std::false_type, T* obj)
+	inline void ObjPool<T>::Delete_aux(std::false_type, void* obj)
 	{
 		obj->~T();
-		_memPool.FreeAMemBlock(static_cast<void*>(obj));
+		_memPool.FreeAMemBlock(obj);
 	}
 	
 }

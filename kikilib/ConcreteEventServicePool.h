@@ -25,7 +25,7 @@ namespace kikilib
 
 		void RetrieveEventService(EventService* ev)
 		{
-			_evServeConstructor.Delete(dynamic_cast<ConcreteEventService*>(ev));
+			_evServeConstructor.Delete(static_cast<void*>(ev));
 		}
 
 	private:
