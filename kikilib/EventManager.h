@@ -19,6 +19,7 @@ namespace kikilib
 	class EventService;
 	class Timer;
 	class ThreadPool;
+	typedef Time TimerTaskId;
 
 	//事件优先级
 	enum EventPriority
@@ -63,18 +64,21 @@ namespace kikilib
 		//需要注意，如果timerCb里面会执行RunExpired()函数的话会发生死锁
 		//在time时刻执行timerCb函数
 		//一个time就八个字节，搞引用相当于一个指针还是分配了八个字节（x64），所以time不搞&和&&
-		void runAt(Time time, std::function<void()>&& timerCb);
-		void runAt(Time time, std::function<void()>& timerCb);
+		TimerTaskId runAt(Time time, std::function<void()>&& timerCb);
+		TimerTaskId runAt(Time time, std::function<void()>& timerCb);
 
 		//time时间后执行timerCb函数
-		void runAfter(Time time, std::function<void()>&& timerCb);
-		void runAfter(Time time, std::function<void()>& timerCb);
+		TimerTaskId runAfter(Time time, std::function<void()>&& timerCb);
+		TimerTaskId runAfter(Time time, std::function<void()>& timerCb);
 
 		//每过time时间执行一次timerCb函数
-		void runEvery(Time time, std::function<void()> timerCb);
+		void runEvery(Time time, std::function<void()> timerCb, TimerTaskId& retId);
 
 		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
-		void runEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue);
+		void runEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue, TimerTaskId& retId);
+
+		//移除一个定时器事件
+		void removeTimerTask(TimerTaskId& timerId);
 
 		//运行所有已经超时的需要执行的函数
 		void runExpired();

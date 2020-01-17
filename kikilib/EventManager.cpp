@@ -214,71 +214,73 @@ void EventManager::modifyEv(EventService* ev)
 	}
 }
 
-void EventManager::runAt(Time time, std::function<void()>&& timerCb)
+TimerTaskId EventManager::runAt(Time time, std::function<void()>&& timerCb)
 {
 	SpinlockGuard lock(_timerSpLck);
-	_pTimer->runAt(time, std::move(timerCb));
+	return _pTimer->runAt(time, std::move(timerCb));
 }
 
-void EventManager::runAt(Time time, std::function<void()>& timerCb)
+TimerTaskId EventManager::runAt(Time time, std::function<void()>& timerCb)
 {
 	SpinlockGuard lock(_timerSpLck);
-	_pTimer->runAt(time, timerCb);
+	return _pTimer->runAt(time, timerCb);
 }
 
 //time时间后执行timerCb函数
-void EventManager::runAfter(Time time, std::function<void()>&& timerCb)
+TimerTaskId EventManager::runAfter(Time time, std::function<void()>&& timerCb)
+{
+	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
+	
+	SpinlockGuard lock(_timerSpLck);
+	return _pTimer->runAt(runTime, std::move(timerCb));
+	
+}
+
+//time时间后执行timerCb函数
+TimerTaskId EventManager::runAfter(Time time, std::function<void()>& timerCb)
 {
 	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
 
-	{
-		SpinlockGuard lock(_timerSpLck);
-		_pTimer->runAt(runTime, std::move(timerCb));
-	}
+	SpinlockGuard lock(_timerSpLck);
+	return  _pTimer->runAt(runTime, timerCb);
 }
 
 //time时间后执行timerCb函数
-void EventManager::runAfter(Time time, std::function<void()>& timerCb)
-{
-	Time runTime(Time::now().getTimeVal() + time.getTimeVal());
-
-	{
-		SpinlockGuard lock(_timerSpLck);
-		_pTimer->runAt(runTime, timerCb);
-	}
-}
-
-//time时间后执行timerCb函数
-void EventManager::runEvery(Time time, std::function<void()> timerCb)
+void EventManager::runEvery(Time time, std::function<void()> timerCb, TimerTaskId& retId)
 {
 	//这里lamda表达式不加括号会立刻执行
 	std::function<void()> realTimerCb(
-		[this, time, timerCb]
+		[this, time, timerCb, &retId]
 		{
 			timerCb();
-			this->runEvery(time, timerCb);
+			this->runEvery(time, timerCb, retId);
 		}
 		);
 
-	runAfter(time, std::move(realTimerCb));
+	retId = runAfter(time, std::move(realTimerCb));
 
 }
 
 //每过time时间执行一次timerCb函数,直到isContinue函数返回false
-void EventManager::runEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue)
+void EventManager::runEveryUntil(Time time, std::function<void()> timerCb, std::function<bool()> isContinue, TimerTaskId& retId)
 {
 	std::function<void()> realTimerCb(
-		[this, time, timerCb, isContinue]
+		[this, time, timerCb, isContinue, &retId]
 		{
 			if (isContinue())
 			{
 				timerCb();
-				this->runEveryUntil(time, timerCb, isContinue);
+				this->runEveryUntil(time, timerCb, isContinue, retId);
 			}
 		}
 		);
 
-	runAfter(time, std::move(realTimerCb));
+	retId = runAfter(time, std::move(realTimerCb));
+}
+
+void EventManager::removeTimerTask(TimerTaskId& timerId)
+{
+	_pTimer->removeTimerTask(timerId);
 }
 
 //运行所有已经超时的需要执行的函数

@@ -14,6 +14,7 @@ void KikitestService::handleReadEvent()
 	kikilib::Time end(0);
 	while (readInt32(len))
 	{
+		kikilib::TimerTaskId t;
 		switch (len)
 		{
 		case 0:
@@ -39,6 +40,7 @@ void KikitestService::handleReadEvent()
 				{
 					RecordLog(std::to_string(this->getVal()));
 				}
+					,t
 				);
 			break;
 
@@ -61,6 +63,7 @@ void KikitestService::handleReadEvent()
 				{
 					return this->getVal() != 100;
 				}
+					, t
 				);
 			break;
 

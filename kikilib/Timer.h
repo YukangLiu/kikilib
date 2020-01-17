@@ -11,6 +11,8 @@
 
 namespace kikilib
 {
+
+	typedef Time TimerTaskId;
 	//定时器
 	//职责：
 	//1、管理 某一时刻——该时刻需要执行的函数 的映射表
@@ -29,8 +31,10 @@ namespace kikilib
 		void getExpiredTask(std::vector<std::function<void()>> &tasks);
 
 		//在time时刻需要执行函数cb
-		void runAt(Time time, std::function<void()>& cb);
-		void runAt(Time time, std::function<void()>&& cb);
+		TimerTaskId runAt(Time time, std::function<void()>& cb);
+		TimerTaskId runAt(Time time, std::function<void()>&& cb);
+
+		void removeTimerTask(TimerTaskId timerId);
 
 	private:
 		//给timefd重新设置时间，time是绝对时间

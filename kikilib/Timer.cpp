@@ -23,7 +23,7 @@ void Timer::getExpiredTask(std::vector<std::function<void()>>& tasks)
 	}
 }
 
-void Timer::runAt(Time time, std::function<void()>& cb)
+TimerTaskId Timer::runAt(Time time, std::function<void()>& cb)
 {
 	if (_timerCbMap.find(time) != _timerCbMap.end())
 	{//通过加1微秒解决冲突
@@ -34,9 +34,10 @@ void Timer::runAt(Time time, std::function<void()>& cb)
 	{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
 		resetTimeOfTimefd(time);
 	}
+	return time;
 }
 
-void Timer::runAt(Time time, std::function<void()>&& cb)
+TimerTaskId Timer::runAt(Time time, std::function<void()>&& cb)
 {
 	if (_timerCbMap.find(time) != _timerCbMap.end())
 	{//通过加1微秒解决冲突
@@ -47,6 +48,7 @@ void Timer::runAt(Time time, std::function<void()>&& cb)
 	{//新加入的任务是最紧急的任务则需要更改timefd所设置的时间
 		resetTimeOfTimefd(time);
 	}
+	return time;
 }
 
 //给timefd重新设置时间，time是绝对时间
@@ -64,3 +66,11 @@ void Timer::resetTimeOfTimefd(Time time)
 	}
 }
 
+void Timer::removeTimerTask(TimerTaskId timerId)
+{
+	auto it = _timerCbMap.find(timerId);
+	if (it != _timerCbMap.end())
+	{
+		_timerCbMap.erase(it);
+	}
+}

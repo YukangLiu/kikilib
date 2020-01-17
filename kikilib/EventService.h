@@ -16,6 +16,7 @@
 namespace kikilib
 {
 	class EventManager;
+	typedef Time TimerTaskId;
 
 	//事件服务员类
 	//职责：
@@ -85,23 +86,23 @@ namespace kikilib
 		//需要注意，如果timerCb里面会执行RunExpired()函数的话会发生死锁
 
 		//在time时刻执行timerCb函数
-		void runAt(Time time, std::function<void()>&& timerCb);
-		void runAt(Time time, std::function<void()>& timerCb);
+		TimerTaskId runAt(Time time, std::function<void()>&& timerCb);
+		TimerTaskId runAt(Time time, std::function<void()>& timerCb);
 
 		//time时间后执行timerCb函数
-		void runAfter(Time time, std::function<void()>&& timerCb);
-		void runAfter(Time time, std::function<void()>& timerCb);
+		TimerTaskId runAfter(Time time, std::function<void()>&& timerCb);
+		TimerTaskId runAfter(Time time, std::function<void()>& timerCb);
 
 		//虽然调用eventmanager的下面这几个函数是必须拷贝的，但是这里弄成这样可以减少一次拷贝
 		//每过time时间执行timerCb函数
-		void runEvery(Time time, std::function<void()>&& timerCb);
-		void runEvery(Time time, std::function<void()>& timerCb);
+		void runEvery(Time time, std::function<void()>&& timerCb, TimerTaskId& retId);
+		void runEvery(Time time, std::function<void()>& timerCb, TimerTaskId& retId);
 
 		//每过time时间执行一次timerCb函数,直到isContinue函数返回false
-		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue);
-		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue);
-		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue);
-		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue);
+		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId);
+		void runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue, TimerTaskId& retId);
+		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId);
+		void runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue, TimerTaskId& retId);
 
 		//运行所有已经超时的需要执行的函数
 		void runExpired();

@@ -15,7 +15,7 @@ namespace kikilib
 	class Time
 	{
 	public:
-		Time(int64_t msSinceEpoch) : _timeVal(msSinceEpoch) {}
+		Time(int64_t msSinceEpoch = 0) : _timeVal(msSinceEpoch) {}
 
 		Time(const Time& time) { _timeVal = time._timeVal; }
 
