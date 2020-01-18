@@ -28,7 +28,7 @@ blog:https://blog.csdn.net/weixin_42333737/article/details/103408007<br>
 4、类图：<br>
 	用户继承EventService类实现其中的UsrImplEventService即可。<br>
 	
-![uml](https://github.com/YukangLiu/kikilib/raw/master/pic/kikilibUMLpic.png)
+![uml](https://github.com/YukangLiu/kikilib/raw/master/pic/kikilibUMLpic.jpg)
 <br>
 <br>
 5、编译：<br>
