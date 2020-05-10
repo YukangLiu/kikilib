@@ -78,7 +78,7 @@ void EventService::handleEvent()
         handleErrEvent();
         forceClose();
 	}
-	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
+	if ((_eventState & (EPOLLIN | EPOLLPRI)))
 	{
 		if (!_bufReader.isEmptyAfterRead())
 		{
@@ -161,58 +161,58 @@ std::string EventService::readLineEndOfN()
 	return _bufReader.readLineEndOfN();
 }
 
-TimerTaskId EventService::runAt(Time time, std::function<void()>&& timerCb)
+void EventService::runAt(Time time, std::function<void()>&& timerCb)
 {
-	return _pMyEvMgr->runAt(time, std::move(timerCb));
+	_pMyEvMgr->runAt(time, std::move(timerCb));
 }
 
-TimerTaskId EventService::runAt(Time time, std::function<void()>& timerCb)
+void EventService::runAt(Time time, std::function<void()>& timerCb)
 {
-	return _pMyEvMgr->runAt(time, timerCb);
+	_pMyEvMgr->runAt(time, timerCb);
 }
 
 //time时间后执行timerCb函数
-TimerTaskId EventService::runAfter(Time time, std::function<void()>&& timerCb)
+void EventService::runAfter(Time time, std::function<void()>&& timerCb)
 { 
-	return _pMyEvMgr->runAfter(time, std::move(timerCb));
+	_pMyEvMgr->runAfter(time, std::move(timerCb));
 }
 
 //time时间后执行timerCb函数
-TimerTaskId EventService::runAfter(Time time, std::function<void()>& timerCb)
+void EventService::runAfter(Time time, std::function<void()>& timerCb)
 {
-	return _pMyEvMgr->runAfter(time, timerCb);
+	_pMyEvMgr->runAfter(time, timerCb);
 }
 
 //每过time时间执行timerCb函数
-void EventService::runEvery(Time time, std::function<void()>&& timerCb, TimerTaskId& retId)
+void EventService::runEvery(Time time, std::function<void()>&& timerCb)
 {
-	_pMyEvMgr->runEvery(time, timerCb, retId);
+	_pMyEvMgr->runEvery(time, timerCb);
 }
 
-void EventService::runEvery(Time time, std::function<void()>& timerCb, TimerTaskId& retId)
+void EventService::runEvery(Time time, std::function<void()>& timerCb)
 {
-	_pMyEvMgr->runEvery(time, timerCb, retId);
+	_pMyEvMgr->runEvery(time, timerCb);
 }
 
 //每过time时间执行一次timerCb函数,直到isContinue函数返回false
-void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId)
+void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue)
 {
-	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
+	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue);
 }
 
-void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue, TimerTaskId& retId)
+void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>&& isContinue)
 {
-	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
+	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue);
 }
 
-void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId)
+void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>& isContinue)
 {
-	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
+	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue);
 }
 
-void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue, TimerTaskId& retId)
+void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std::function<bool()>&& isContinue)
 {
-	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
+	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue);
 }
 
 //运行所有已经超时的需要执行的函数
