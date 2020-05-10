@@ -21,8 +21,15 @@ SocketReader::SocketReader(Socket&& sock)
 
 bool SocketReader::isEmptyAfterRead()
 {
-	auto ret = readFillBuf();
-	return ret == 0;
+	if (_rightBorder == _leftBorder)
+	{
+		auto ret = readFillBuf();
+		if (ret <= 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 //读取一个int，若缓存中没有，则返回false
