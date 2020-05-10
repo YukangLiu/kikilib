@@ -21,18 +21,11 @@ SocketReader::SocketReader(Socket&& sock)
 
 bool SocketReader::isEmptyAfterRead()
 {
-	if (_rightBorder == _leftBorder)
-	{
-		auto ret = readFillBuf();
-		if (ret <= 0)
-		{
-			return true;
-		}
-	}
-	return false;
+	auto ret = readFillBuf();
+	return ret == 0;
 }
 
-//¶ÁÈ¡Ò»¸öint£¬Èô»º´æÖÐÃ»ÓÐ£¬Ôò·µ»Øfalse
+//ï¿½ï¿½È¡Ò»ï¿½ï¿½intï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ò·µ»ï¿½false
 bool SocketReader::readInt32(int& res)
 {
 	size_t numSize = 0;
@@ -47,41 +40,41 @@ bool SocketReader::readInt32(int& res)
 	return true;
 }
 
-//¶ÁÈ¡Ò»¸öint64£¬Èô»º´æÖÐÃ»ÓÐ£¬Ôò·µ»Øfalse,ÒÔºóÊµÏÖ
+//ï¿½ï¿½È¡Ò»ï¿½ï¿½int64ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ò·µ»ï¿½false,ï¿½Ôºï¿½Êµï¿½ï¿½
 //bool SocketReader::ReadInt64(int64_t& res)
 //{
 //	ReadFillBuf();
 //
 //}
 
-//¶ÁÈ¡³¤¶ÈÎªlenµÄÊý¾Ý£¬ÈôÃ»ÓÐ³¤¶ÈÎªlenµÄÊý¾Ý£¬Ôò·µ»Ø¿Õ´®
+//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Ã»ï¿½Ð³ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ò·µ»Ø¿Õ´ï¿½
 std::string SocketReader::read(size_t len)
 {
-	//º¯ÊýÖÐÔÚ·µ»Ø´¦¹¹ÔìstringÊÇÎªÁËÂú×ãRVOÌõ¼þ
-	//bufferÖÐÒÑ¾­ÓÐ×ã¹»µÄÊý¾ÝÁË
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú·ï¿½ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½stringï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½RVOï¿½ï¿½ï¿½ï¿½
+	//bufferï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (_rightBorder - _leftBorder >= len)
 	{
 		_leftBorder += len;
 		return std::string(_buffer.begin() + _leftBorder - len, _buffer.begin() + _leftBorder);
 	}
 	if (_buffer.size() - _leftBorder < len)
-	{//buffer¿Õ¼ä²»×ãÒÔ½ÓÊÕ³¤¶ÈlenµÄÊý¾Ý£¬À©Õ¹µ½¸Õ¸Õ¿ÉÒÔ
+	{//bufferï¿½Õ¼ä²»ï¿½ï¿½ï¿½Ô½ï¿½ï¿½Õ³ï¿½ï¿½ï¿½lenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½Õ¸Õ¿ï¿½ï¿½ï¿½
 		_buffer.resize(len + _leftBorder);
 	}
 	readFillBuf();
 	if (_rightBorder - _leftBorder >= len)
-	{//¶ÁÈ¡Ö®ºóÓÐ×ã¹»µÄÊý¾ÝÁË
+	{//ï¿½ï¿½È¡Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		_leftBorder += len;
 		return std::string(_buffer.begin() + _leftBorder - len, _buffer.begin() + _leftBorder);
 	}
-	//¶ÁÈ¡Ö®ºó»¹ÊÇÃ»ÓÐ×ã¹»µÄÊý¾Ý
+	//ï¿½ï¿½È¡Ö®ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	return std::string("");
 }
 
-//¶ÁÈ¡³¤¶ÈÎªlenµÄÊý¾Ý£¬ÈôÃ»ÓÐ³¤¶ÈÎªlenµÄÊý¾Ý£¬Ôò·µ»Øfalse
+//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Ã»ï¿½Ð³ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ò·µ»ï¿½false
 bool SocketReader::read(char* buf, size_t len)
 {
-	//bufferÖÐÒÑ¾­ÓÐ×ã¹»µÄÊý¾ÝÁË
+	//bufferï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (_rightBorder - _leftBorder >= len)
 	{
 		memcpy(buf,&_buffer[_leftBorder],len);
@@ -89,32 +82,32 @@ bool SocketReader::read(char* buf, size_t len)
 		return true;
 	}
 	if (_buffer.size() - _leftBorder < len)
-	{//buffer¿Õ¼ä²»×ãÒÔ½ÓÊÕ³¤¶ÈlenµÄÊý¾Ý£¬À©Õ¹µ½¸Õ¸Õ¿ÉÒÔ
+	{//bufferï¿½Õ¼ä²»ï¿½ï¿½ï¿½Ô½ï¿½ï¿½Õ³ï¿½ï¿½ï¿½lenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½Õ¸Õ¿ï¿½ï¿½ï¿½
 		_buffer.resize(len + _leftBorder);
 	}
 	readFillBuf();
 	if (_rightBorder - _leftBorder >= len)
-	{//¶ÁÈ¡Ö®ºóÓÐ×ã¹»µÄÊý¾ÝÁË
+	{//ï¿½ï¿½È¡Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		memcpy(buf, &_buffer[_leftBorder], len);
 		_leftBorder += len;
 		return true;
 	}
-	//¶ÁÈ¡Ö®ºó»¹ÊÇÃ»ÓÐ×ã¹»µÄÊý¾Ý
+	//ï¿½ï¿½È¡Ö®ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	return false;
 }
 
-//³¢ÊÔ¶ÁÈ¡ÄÜÌîÂú»º³åÇøµÄÊý¾Ý,Èô»º³åÇøÒÑ¾­ÂúÁË£¬»áÏÈÀ©³äParameter::bufExpandRatio±¶´óÐ¡
+//ï¿½ï¿½ï¿½Ô¶ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Parameter::bufExpandRatioï¿½ï¿½ï¿½ï¿½Ð¡
 ssize_t SocketReader::readFillBuf()
 {
 	if (_leftBorder >= (_buffer.size() / Parameter::bufMoveCriterion))
-	{//Èô×ó±ßµÄ¿ÕÏÐÎ»ÖÃÌ«¶à
+	{//ï¿½ï¿½ï¿½ï¿½ßµÄ¿ï¿½ï¿½ï¿½Î»ï¿½ï¿½Ì«ï¿½ï¿½
 		memmove(&(_buffer.front()), &(_buffer[_leftBorder]), _rightBorder - _leftBorder);
 		_rightBorder -= _leftBorder;
 		_leftBorder = 0;
 	}
 
 	if (_rightBorder == _buffer.size())
-	{//Èô»º³åÇøÒÑÂú
+	{//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		_buffer.resize(static_cast<size_t>(static_cast<double>(_buffer.size())* Parameter::bufExpandRatio));
 	}
 
@@ -127,10 +120,10 @@ ssize_t SocketReader::readFillBuf()
 	return ret;
 }
 
-//¶ÁÈ¡ËùÓÐÄÜ¶ÁÈ¡µÄÊý¾Ý£¬Ã»ÓÐÔò·µ»Ø¿Õ´®
+//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ü¶ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½Ã»ï¿½ï¿½ï¿½ò·µ»Ø¿Õ´ï¿½
 std::string SocketReader::readAll()
 {
-	//Ò»Ö±¶Áµ½Ã»¶«Î÷¶ÁÁË
+	//Ò»Ö±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	while (readFillBuf() > 0)
 	{
 		if (_rightBorder != _buffer.size())
@@ -144,7 +137,7 @@ std::string SocketReader::readAll()
 	return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + tmpRight);
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\r\n½áÎ²
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\r\nï¿½ï¿½Î²
 std::string SocketReader::readLineEndOfRN()
 {
 	//ReadFillBuf();
@@ -153,24 +146,24 @@ std::string SocketReader::readLineEndOfRN()
 	{
 		if (_buffer[endPos] == '\r' && endPos + 1 < tmpRight && _buffer[endPos + 1] == '\n')
 		{
-			//ÕÒµ½\r\n
+			//ï¿½Òµï¿½\r\n
 			endPos += 2;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//Ã»ÓÐ\r\n
-	//_rightBorder == _buffer.size()ÒâÎ¶×Å¿ÉÄÜ»¹ÓÐsocketÊý¾ÝÃ»¶ÁÍê
+	//Ã»ï¿½ï¿½\r\n
+	//_rightBorder == _buffer.size()ï¿½ï¿½Î¶ï¿½Å¿ï¿½ï¿½Ü»ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{	
-		//socket»º³åÇø»¹ÓÐÄÚÈÝÃ»¶ÁÍê£¬ÔÙ´Î³¢ÊÔÑ°ÕÒ\r\n
+		//socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ê£¬ï¿½Ù´Î³ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½\r\n
 		return readLineEndOfRN();
 	}
-	//socket¶ÁÍêÁË¶¼Ã»·¢ÏÖ\r\n
+	//socketï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½Ã»ï¿½ï¿½ï¿½ï¿½\r\n
 	return std::string("");
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\r½áÎ²
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\rï¿½ï¿½Î²
 std::string SocketReader::readLineEndOfR()
 {
 	//ReadFillBuf();
@@ -179,24 +172,24 @@ std::string SocketReader::readLineEndOfR()
 	{
 		if (_buffer[endPos] == '\r')
 		{
-			//ÕÒµ½\r
+			//ï¿½Òµï¿½\r
 			++endPos;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//Ã»ÓÐ\r
-	//_rightBorder == _buffer.size()ÒâÎ¶×Å¿ÉÄÜ»¹ÓÐsocketÊý¾ÝÃ»¶ÁÍê
+	//Ã»ï¿½ï¿½\r
+	//_rightBorder == _buffer.size()ï¿½ï¿½Î¶ï¿½Å¿ï¿½ï¿½Ü»ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{
-		//socket»º³åÇø»¹ÓÐÄÚÈÝÃ»¶ÁÍê£¬ÔÙ´Î³¢ÊÔÑ°ÕÒ\r
+		//socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ê£¬ï¿½Ù´Î³ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½\r
 		return readLineEndOfR();
 	}
-	//socket¶ÁÍêÁË¶¼Ã»·¢ÏÖ\r
+	//socketï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½Ã»ï¿½ï¿½ï¿½ï¿½\r
 	return std::string("");
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\n½áÎ²
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\nï¿½ï¿½Î²
 std::string SocketReader::readLineEndOfN()
 {
 	//ReadFillBuf();
@@ -205,19 +198,19 @@ std::string SocketReader::readLineEndOfN()
 	{
 		if (_buffer[endPos] == '\n')
 		{
-			//ÕÒµ½\n
+			//ï¿½Òµï¿½\n
 			++endPos;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//Ã»ÓÐ\n
-	//_rightBorder == _buffer.size()ÒâÎ¶×Å¿ÉÄÜ»¹ÓÐsocketÊý¾ÝÃ»¶ÁÍê
+	//Ã»ï¿½ï¿½\n
+	//_rightBorder == _buffer.size()ï¿½ï¿½Î¶ï¿½Å¿ï¿½ï¿½Ü»ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{
-		//socket»º³åÇø»¹ÓÐÄÚÈÝÃ»¶ÁÍê£¬ÔÙ´Î³¢ÊÔÑ°ÕÒ\r
+		//socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ê£¬ï¿½Ù´Î³ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½\r
 		return readLineEndOfR();
 	}
-	//socket¶ÁÍêÁË¶¼Ã»·¢ÏÖ\n
+	//socketï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½Ã»ï¿½ï¿½ï¿½ï¿½\n
 	return std::string("");
 }

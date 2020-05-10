@@ -40,31 +40,31 @@ void EventService::setInteresEv(int newInterestEv)
 	_pMyEvMgr->modifyEv(this);
 }
 
-//ÏòÊÂ¼þ¹ÜÀíÆ÷ÖÐ²åÈëÒ»¸öÊÂ¼þ,ÕâÊÇÏß³Ì°²È«µÄ
+//ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Â¼ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì°ï¿½È«ï¿½ï¿½
 void EventService::insertEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->insertEv(ev);
 }
 
-//ÏòÊÂ¼þ¹ÜÀíÆ÷ÖÐÒÆ³ýÒ»¸öÊÂ¼þ,ÕâÊÇÏß³Ì°²È«µÄ
+//ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ³ï¿½Ò»ï¿½ï¿½ï¿½Â¼ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì°ï¿½È«ï¿½ï¿½
 void EventService::removeEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->removeEv(ev);
 }
 
-//ÏòÊÂ¼þ¹ÜÀíÆ÷ÖÐÐÞ¸ÄÒ»¸öÊÂ¼þ·þÎñËù¹Ø×¢µÄÊÂ¼þÀàÐÍ,ÕâÊÇÏß³Ì°²È«µÄ
+//ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½Ò»ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì°ï¿½È«ï¿½ï¿½
 void EventService::modifyEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->modifyEv(ev);
 }
 
-//»ñµÃEventManagerÇøÓòÎ¨Ò»µÄÉÏÏÂÎÄÄÚÈÝ
+//ï¿½ï¿½ï¿½EventManagerï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void* EventService::getThisEvMgrCtx()
 {
 	return _pMyEvMgr->getEvMgrCtx();
 }
 
-//¸ù¾ÝÊÂ¼þÀàÐÍ´¦ÀíÊÂ¼þ
+//ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Í´ï¿½ï¿½ï¿½ï¿½Â¼ï¿½
 void EventService::handleEvent()
 {
 	if ((_eventState & EPOLLHUP) && !(_eventState & EPOLLIN))
@@ -78,7 +78,7 @@ void EventService::handleEvent()
         handleErrEvent();
         forceClose();
 	}
-	if (_eventState & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
+	if (_eventState & (EPOLLIN | EPOLLPRI))
 	{
 		if (!_bufReader.isEmptyAfterRead())
 		{
@@ -105,7 +105,7 @@ void EventService::handleWriteEvent()
 	_bufWritter.writeBufToSock();
 }
 
-//Ð´Ò»¸öint
+//Ð´Ò»ï¿½ï¿½int
 bool EventService::sendInt32(int num)
 {
 	return _bufWritter.sendInt32(num);
@@ -121,7 +121,7 @@ bool EventService::sendContent(std::string&& content)
 	return _bufWritter.send(std::move(content));
 }
 
-//¶ÁÈ¡Ò»¸öint£¬Èô»º´æÖÐÃ»ÓÐ£¬Ôò·µ»Øfalse
+//ï¿½ï¿½È¡Ò»ï¿½ï¿½intï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ò·µ»ï¿½false
 bool EventService::readInt32(int& res)
 {
 	return _bufReader.readInt32(res);
@@ -132,7 +132,7 @@ std::string EventService::readBuf(size_t len)
 	return _bufReader.read(len);
 }
 
-//¶ÁÈ¡³¤¶ÈÎªlenµÄÊý¾Ý£¬ÈôÃ»ÓÐ³¤¶ÈÎªlenµÄÊý¾Ý£¬Ôò·µ»Øfalse
+//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Ã»ï¿½Ð³ï¿½ï¿½ï¿½Îªlenï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ò·µ»ï¿½false
 bool EventService::readBuf(char* buf, size_t len)
 {
 	return _bufReader.read(buf, len);
@@ -143,19 +143,19 @@ std::string EventService::readAll()
 	return _bufReader.readAll();
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\r\n½áÎ²,ÈôÃ»ÓÐ£¬·µ»Ø¿Õ´®
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\r\nï¿½ï¿½Î²,ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ø¿Õ´ï¿½
 std::string EventService::readLineEndOfRN()
 {
 	return _bufReader.readLineEndOfRN();
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\r½áÎ²,ÈôÃ»ÓÐ£¬·µ»Ø¿Õ´®
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\rï¿½ï¿½Î²,ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ø¿Õ´ï¿½
 std::string EventService::readLineEndOfR()
 {
 	return _bufReader.readLineEndOfR();
 }
 
-//¶ÁÒ»ÐÐ£¬¸ÃÐÐÒÔ\n½áÎ²,ÈôÃ»ÓÐ£¬·µ»Ø¿Õ´®
+//ï¿½ï¿½Ò»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\nï¿½ï¿½Î²,ï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ø¿Õ´ï¿½
 std::string EventService::readLineEndOfN()
 {
 	return _bufReader.readLineEndOfN();
@@ -171,19 +171,19 @@ TimerTaskId EventService::runAt(Time time, std::function<void()>& timerCb)
 	return _pMyEvMgr->runAt(time, timerCb);
 }
 
-//timeÊ±¼äºóÖ´ÐÐtimerCbº¯Êý
+//timeÊ±ï¿½ï¿½ï¿½Ö´ï¿½ï¿½timerCbï¿½ï¿½ï¿½ï¿½
 TimerTaskId EventService::runAfter(Time time, std::function<void()>&& timerCb)
 { 
 	return _pMyEvMgr->runAfter(time, std::move(timerCb));
 }
 
-//timeÊ±¼äºóÖ´ÐÐtimerCbº¯Êý
+//timeÊ±ï¿½ï¿½ï¿½Ö´ï¿½ï¿½timerCbï¿½ï¿½ï¿½ï¿½
 TimerTaskId EventService::runAfter(Time time, std::function<void()>& timerCb)
 {
 	return _pMyEvMgr->runAfter(time, timerCb);
 }
 
-//Ã¿¹ýtimeÊ±¼äÖ´ÐÐtimerCbº¯Êý
+//Ã¿ï¿½ï¿½timeÊ±ï¿½ï¿½Ö´ï¿½ï¿½timerCbï¿½ï¿½ï¿½ï¿½
 void EventService::runEvery(Time time, std::function<void()>&& timerCb, TimerTaskId& retId)
 {
 	_pMyEvMgr->runEvery(time, timerCb, retId);
@@ -194,7 +194,7 @@ void EventService::runEvery(Time time, std::function<void()>& timerCb, TimerTask
 	_pMyEvMgr->runEvery(time, timerCb, retId);
 }
 
-//Ã¿¹ýtimeÊ±¼äÖ´ÐÐÒ»´ÎtimerCbº¯Êý,Ö±µ½isContinueº¯Êý·µ»Øfalse
+//Ã¿ï¿½ï¿½timeÊ±ï¿½ï¿½Ö´ï¿½ï¿½Ò»ï¿½ï¿½timerCbï¿½ï¿½ï¿½ï¿½,Ö±ï¿½ï¿½isContinueï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½false
 void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId)
 {
 	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
@@ -215,13 +215,13 @@ void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std
 	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
 }
 
-//ÔËÐÐËùÓÐÒÑ¾­³¬Ê±µÄÐèÒªÖ´ÐÐµÄº¯Êý
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ÒªÖ´ï¿½ÐµÄºï¿½ï¿½ï¿½
 void EventService::runExpired()
 {
 	_pMyEvMgr->runExpired();
 }
 
-//½«ÈÎÎñ·ÅÔÚÏß³Ì³ØÖÐÒÔ´ïµ½Òì²½Ö´ÐÐµÄÐ§¹û
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì³ï¿½ï¿½ï¿½ï¿½Ô´ïµ½ï¿½ì²½Ö´ï¿½Ðµï¿½Ð§ï¿½ï¿½
 void EventService::runInThreadPool(std::function<void()>&& func)
 {
     return _pMyEvMgr->runInThreadPool(std::move(func));
