@@ -40,31 +40,31 @@ void EventService::setInteresEv(int newInterestEv)
 	_pMyEvMgr->modifyEv(this);
 }
 
-//���¼��������в���һ���¼�,�����̰߳�ȫ��
+//向事件管理器中插入一个事件,这是线程安全的
 void EventService::insertEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->insertEv(ev);
 }
 
-//���¼����������Ƴ�һ���¼�,�����̰߳�ȫ��
+//向事件管理器中移除一个事件,这是线程安全的
 void EventService::removeEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->removeEv(ev);
 }
 
-//���¼����������޸�һ���¼���������ע���¼�����,�����̰߳�ȫ��
+//向事件管理器中修改一个事件服务所关注的事件类型,这是线程安全的
 void EventService::modifyEvInThisEvMgr(EventService* ev)
 {
 	_pMyEvMgr->modifyEv(ev);
 }
 
-//���EventManager����Ψһ������������
+//获得EventManager区域唯一的上下文内容
 void* EventService::getThisEvMgrCtx()
 {
 	return _pMyEvMgr->getEvMgrCtx();
 }
 
-//�����¼����ʹ����¼�
+//根据事件类型处理事件
 void EventService::handleEvent()
 {
 	if ((_eventState & EPOLLHUP) && !(_eventState & EPOLLIN))
@@ -105,7 +105,7 @@ void EventService::handleWriteEvent()
 	_bufWritter.writeBufToSock();
 }
 
-//дһ��int
+//写一个int
 bool EventService::sendInt32(int num)
 {
 	return _bufWritter.sendInt32(num);
@@ -121,7 +121,7 @@ bool EventService::sendContent(std::string&& content)
 	return _bufWritter.send(std::move(content));
 }
 
-//��ȡһ��int����������û�У��򷵻�false
+//读取一个int，若缓存中没有，则返回false
 bool EventService::readInt32(int& res)
 {
 	return _bufReader.readInt32(res);
@@ -132,7 +132,7 @@ std::string EventService::readBuf(size_t len)
 	return _bufReader.read(len);
 }
 
-//��ȡ����Ϊlen�����ݣ���û�г���Ϊlen�����ݣ��򷵻�false
+//读取长度为len的数据，若没有长度为len的数据，则返回false
 bool EventService::readBuf(char* buf, size_t len)
 {
 	return _bufReader.read(buf, len);
@@ -143,19 +143,19 @@ std::string EventService::readAll()
 	return _bufReader.readAll();
 }
 
-//��һ�У�������\r\n��β,��û�У����ؿմ�
+//读一行，该行以\r\n结尾,若没有，返回空串
 std::string EventService::readLineEndOfRN()
 {
 	return _bufReader.readLineEndOfRN();
 }
 
-//��һ�У�������\r��β,��û�У����ؿմ�
+//读一行，该行以\r结尾,若没有，返回空串
 std::string EventService::readLineEndOfR()
 {
 	return _bufReader.readLineEndOfR();
 }
 
-//��һ�У�������\n��β,��û�У����ؿմ�
+//读一行，该行以\n结尾,若没有，返回空串
 std::string EventService::readLineEndOfN()
 {
 	return _bufReader.readLineEndOfN();
@@ -171,19 +171,19 @@ TimerTaskId EventService::runAt(Time time, std::function<void()>& timerCb)
 	return _pMyEvMgr->runAt(time, timerCb);
 }
 
-//timeʱ���ִ��timerCb����
+//time时间后执行timerCb函数
 TimerTaskId EventService::runAfter(Time time, std::function<void()>&& timerCb)
 { 
 	return _pMyEvMgr->runAfter(time, std::move(timerCb));
 }
 
-//timeʱ���ִ��timerCb����
+//time时间后执行timerCb函数
 TimerTaskId EventService::runAfter(Time time, std::function<void()>& timerCb)
 {
 	return _pMyEvMgr->runAfter(time, timerCb);
 }
 
-//ÿ��timeʱ��ִ��timerCb����
+//每过time时间执行timerCb函数
 void EventService::runEvery(Time time, std::function<void()>&& timerCb, TimerTaskId& retId)
 {
 	_pMyEvMgr->runEvery(time, timerCb, retId);
@@ -194,7 +194,7 @@ void EventService::runEvery(Time time, std::function<void()>& timerCb, TimerTask
 	_pMyEvMgr->runEvery(time, timerCb, retId);
 }
 
-//ÿ��timeʱ��ִ��һ��timerCb����,ֱ��isContinue��������false
+//每过time时间执行一次timerCb函数,直到isContinue函数返回false
 void EventService::runEveryUntil(Time time, std::function<void()>& timerCb, std::function<bool()>& isContinue, TimerTaskId& retId)
 {
 	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
@@ -215,13 +215,13 @@ void EventService::runEveryUntil(Time time, std::function<void()>&& timerCb, std
 	_pMyEvMgr->runEveryUntil(time, timerCb, isContinue, retId);
 }
 
-//���������Ѿ���ʱ����Ҫִ�еĺ���
+//运行所有已经超时的需要执行的函数
 void EventService::runExpired()
 {
 	_pMyEvMgr->runExpired();
 }
 
-//����������̳߳����Դﵽ�첽ִ�е�Ч��
+//将任务放在线程池中以达到异步执行的效果
 void EventService::runInThreadPool(std::function<void()>&& func)
 {
     return _pMyEvMgr->runInThreadPool(std::move(func));

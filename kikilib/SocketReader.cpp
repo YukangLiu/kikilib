@@ -25,7 +25,7 @@ bool SocketReader::isEmptyAfterRead()
 	return ret == 0;
 }
 
-//��ȡһ��int����������û�У��򷵻�false
+//读取一个int，若缓存中没有，则返回false
 bool SocketReader::readInt32(int& res)
 {
 	size_t numSize = 0;
@@ -40,41 +40,41 @@ bool SocketReader::readInt32(int& res)
 	return true;
 }
 
-//��ȡһ��int64����������û�У��򷵻�false,�Ժ�ʵ��
+//读取一个int64，若缓存中没有，则返回false,以后实现
 //bool SocketReader::ReadInt64(int64_t& res)
 //{
 //	ReadFillBuf();
 //
 //}
 
-//��ȡ����Ϊlen�����ݣ���û�г���Ϊlen�����ݣ��򷵻ؿմ�
+//读取长度为len的数据，若没有长度为len的数据，则返回空串
 std::string SocketReader::read(size_t len)
 {
-	//�������ڷ��ش�����string��Ϊ������RVO����
-	//buffer���Ѿ����㹻��������
+	//函数中在返回处构造string是为了满足RVO条件
+	//buffer中已经有足够的数据了
 	if (_rightBorder - _leftBorder >= len)
 	{
 		_leftBorder += len;
 		return std::string(_buffer.begin() + _leftBorder - len, _buffer.begin() + _leftBorder);
 	}
 	if (_buffer.size() - _leftBorder < len)
-	{//buffer�ռ䲻���Խ��ճ���len�����ݣ���չ���ոտ���
+	{//buffer空间不足以接收长度len的数据，扩展到刚刚可以
 		_buffer.resize(len + _leftBorder);
 	}
 	readFillBuf();
 	if (_rightBorder - _leftBorder >= len)
-	{//��ȡ֮�����㹻��������
+	{//读取之后有足够的数据了
 		_leftBorder += len;
 		return std::string(_buffer.begin() + _leftBorder - len, _buffer.begin() + _leftBorder);
 	}
-	//��ȡ֮����û���㹻������
+	//读取之后还是没有足够的数据
 	return std::string("");
 }
 
-//��ȡ����Ϊlen�����ݣ���û�г���Ϊlen�����ݣ��򷵻�false
+//读取长度为len的数据，若没有长度为len的数据，则返回false
 bool SocketReader::read(char* buf, size_t len)
 {
-	//buffer���Ѿ����㹻��������
+	//buffer中已经有足够的数据了
 	if (_rightBorder - _leftBorder >= len)
 	{
 		memcpy(buf,&_buffer[_leftBorder],len);
@@ -82,32 +82,32 @@ bool SocketReader::read(char* buf, size_t len)
 		return true;
 	}
 	if (_buffer.size() - _leftBorder < len)
-	{//buffer�ռ䲻���Խ��ճ���len�����ݣ���չ���ոտ���
+	{//buffer空间不足以接收长度len的数据，扩展到刚刚可以
 		_buffer.resize(len + _leftBorder);
 	}
 	readFillBuf();
 	if (_rightBorder - _leftBorder >= len)
-	{//��ȡ֮�����㹻��������
+	{//读取之后有足够的数据了
 		memcpy(buf, &_buffer[_leftBorder], len);
 		_leftBorder += len;
 		return true;
 	}
-	//��ȡ֮����û���㹻������
+	//读取之后还是没有足够的数据
 	return false;
 }
 
-//���Զ�ȡ������������������,���������Ѿ����ˣ���������Parameter::bufExpandRatio����С
+//尝试读取能填满缓冲区的数据,若缓冲区已经满了，会先扩充Parameter::bufExpandRatio倍大小
 ssize_t SocketReader::readFillBuf()
 {
 	if (_leftBorder >= (_buffer.size() / Parameter::bufMoveCriterion))
-	{//����ߵĿ���λ��̫��
+	{//若左边的空闲位置太多
 		memmove(&(_buffer.front()), &(_buffer[_leftBorder]), _rightBorder - _leftBorder);
 		_rightBorder -= _leftBorder;
 		_leftBorder = 0;
 	}
 
 	if (_rightBorder == _buffer.size())
-	{//������������
+	{//若缓冲区已满
 		_buffer.resize(static_cast<size_t>(static_cast<double>(_buffer.size())* Parameter::bufExpandRatio));
 	}
 
@@ -120,10 +120,10 @@ ssize_t SocketReader::readFillBuf()
 	return ret;
 }
 
-//��ȡ�����ܶ�ȡ�����ݣ�û���򷵻ؿմ�
+//读取所有能读取的数据，没有则返回空串
 std::string SocketReader::readAll()
 {
-	//һֱ����û��������
+	//一直读到没东西读了
 	while (readFillBuf() > 0)
 	{
 		if (_rightBorder != _buffer.size())
@@ -137,7 +137,7 @@ std::string SocketReader::readAll()
 	return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + tmpRight);
 }
 
-//��һ�У�������\r\n��β
+//读一行，该行以\r\n结尾
 std::string SocketReader::readLineEndOfRN()
 {
 	//ReadFillBuf();
@@ -146,24 +146,24 @@ std::string SocketReader::readLineEndOfRN()
 	{
 		if (_buffer[endPos] == '\r' && endPos + 1 < tmpRight && _buffer[endPos + 1] == '\n')
 		{
-			//�ҵ�\r\n
+			//找到\r\n
 			endPos += 2;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//û��\r\n
-	//_rightBorder == _buffer.size()��ζ�ſ��ܻ���socket����û����
+	//没有\r\n
+	//_rightBorder == _buffer.size()意味着可能还有socket数据没读完
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{	
-		//socket��������������û���꣬�ٴγ���Ѱ��\r\n
+		//socket缓冲区还有内容没读完，再次尝试寻找\r\n
 		return readLineEndOfRN();
 	}
-	//socket�����˶�û����\r\n
+	//socket读完了都没发现\r\n
 	return std::string("");
 }
 
-//��һ�У�������\r��β
+//读一行，该行以\r结尾
 std::string SocketReader::readLineEndOfR()
 {
 	//ReadFillBuf();
@@ -172,24 +172,24 @@ std::string SocketReader::readLineEndOfR()
 	{
 		if (_buffer[endPos] == '\r')
 		{
-			//�ҵ�\r
+			//找到\r
 			++endPos;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//û��\r
-	//_rightBorder == _buffer.size()��ζ�ſ��ܻ���socket����û����
+	//没有\r
+	//_rightBorder == _buffer.size()意味着可能还有socket数据没读完
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{
-		//socket��������������û���꣬�ٴγ���Ѱ��\r
+		//socket缓冲区还有内容没读完，再次尝试寻找\r
 		return readLineEndOfR();
 	}
-	//socket�����˶�û����\r
+	//socket读完了都没发现\r
 	return std::string("");
 }
 
-//��һ�У�������\n��β
+//读一行，该行以\n结尾
 std::string SocketReader::readLineEndOfN()
 {
 	//ReadFillBuf();
@@ -198,19 +198,19 @@ std::string SocketReader::readLineEndOfN()
 	{
 		if (_buffer[endPos] == '\n')
 		{
-			//�ҵ�\n
+			//找到\n
 			++endPos;
 			_leftBorder = endPos;
 			return std::string(_buffer.begin() + tmpLeft, _buffer.begin() + endPos);
 		}
 	}
-	//û��\n
-	//_rightBorder == _buffer.size()��ζ�ſ��ܻ���socket����û����
+	//没有\n
+	//_rightBorder == _buffer.size()意味着可能还有socket数据没读完
 	if (_rightBorder == _buffer.size() && readFillBuf() > 0)
 	{
-		//socket��������������û���꣬�ٴγ���Ѱ��\r
+		//socket缓冲区还有内容没读完，再次尝试寻找\r
 		return readLineEndOfR();
 	}
-	//socket�����˶�û����\n
+	//socket读完了都没发现\n
 	return std::string("");
 }
